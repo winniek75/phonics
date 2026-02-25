@@ -57,7 +57,7 @@ const EMOJI: Record<string, string> = {
   web:"🕸️", wig:"👱", win:"🏆", wet:"💧",
   van:"🚐", vet:"👩‍⚕️", vow:"🙏",
   quiz:"❓", queen:"👑",
-  out:"⬆️", our:"🏠", owl:"🦉",
+  out:"⬆️", our:"🏠",
   blue:"🔵", clue:"🔍", due:"📅", glue:"🫙",
   her:"👩", bird:"🐦", fern:"🌿",
   farm:"🚜", car:"🚗", star:"⭐",
