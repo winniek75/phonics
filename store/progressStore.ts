@@ -7,6 +7,11 @@ interface GameScores {
   segmenting: number;
   trickyWords: number;
   letterMatch: number;
+  // ── 新規追加ゲーム ──
+  bubblePop: number;
+  whackAMole: number;
+  wordFishing: number;
+  memoryMatch: number;
 }
 
 interface ProgressState {
@@ -30,6 +35,10 @@ const defaultState = {
     segmenting: 0,
     trickyWords: 0,
     letterMatch: 0,
+    bubblePop: 0,
+    whackAMole: 0,
+    wordFishing: 0,
+    memoryMatch: 0,
   },
   masteredTrickyWords: [] as string[],
   profileName: "Learner",
