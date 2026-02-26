@@ -26,8 +26,8 @@ type BubbleEffect = "pop" | "squish" | null;
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 
 const GAME_DURATION = 30;
-const MAX_BUBBLES = 7;
-const MIN_BUBBLES = 5;
+const MAX_BUBBLES = 6;
+const MIN_BUBBLES = 4;
 
 const BUBBLE_COLORS = [
   "from-pink-300 to-pink-500 border-pink-200",
@@ -60,13 +60,13 @@ function spawnBubble(phoneme: Phoneme): Bubble {
   return {
     id: nextId(),
     phoneme,
-    x: 5 + Math.random() * 80,
-    y: 8 + Math.random() * 72,
-    size: 72 + Math.floor(Math.random() * 40),
+    x: 10 + Math.random() * 70,  // より狭い範囲で配置
+    y: 15 + Math.random() * 65,  // より狭い範囲で配置
+    size: 120 + Math.floor(Math.random() * 80), // 大きくする (120-200px)
     colorClass: pickRandom(BUBBLE_COLORS),
-    driftX: (Math.random() - 0.5) * 24,
-    driftY: (Math.random() - 0.5) * 24,
-    duration: 2.5 + Math.random() * 2,
+    driftX: (Math.random() - 0.5) * 15, // ゆっくり
+    driftY: (Math.random() - 0.5) * 15, // ゆっくり
+    duration: 4 + Math.random() * 3,    // ゆっくり (4-7秒)
   };
 }
 
@@ -201,47 +201,47 @@ export default function BubblePopPage() {
     timeLeft > 15 ? "text-green-600" : timeLeft > 8 ? "text-yellow-500" : "text-red-500";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-blue-100 to-indigo-100 flex flex-col select-none">
+    <div className="h-screen bg-gradient-to-b from-sky-200 via-blue-100 to-indigo-100 flex flex-col select-none overflow-hidden">
       {/* ヘッダー */}
-      <header className="flex items-center justify-between px-4 py-3 bg-white/60 backdrop-blur-sm sticky top-0 z-10">
+      <header className="flex items-center justify-between px-6 py-4 bg-white/60 backdrop-blur-sm sticky top-0 z-10">
         <Link
           href="/games"
-          className="text-blue-700 font-bold text-lg hover:text-blue-900"
+          className="text-blue-700 font-bold text-xl hover:text-blue-900"
         >
           ← Back
         </Link>
-        <h1 className="font-display text-2xl text-blue-800">🫧 Bubble Pop</h1>
-        <div className="w-16" />
+        <h1 className="font-display text-3xl text-blue-800">🫧 Bubble Pop</h1>
+        <div className="w-20" />
       </header>
 
       {/* ── Ready ──────────────────────────────────────────────────── */}
       {phase === "ready" && (
         <div className="flex-1 flex items-center justify-center p-8">
           <motion.div
-            className="bg-white rounded-3xl shadow-2xl p-10 max-w-sm w-full text-center"
+            className="bg-white rounded-3xl shadow-2xl p-12 max-w-lg w-full text-center"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
           >
             <motion.div
-              className="text-8xl mb-4"
+              className="text-9xl mb-6"
               animate={{ y: [0, -12, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             >
               🫧
             </motion.div>
-            <h2 className="font-display text-3xl text-blue-700 mb-3">
+            <h2 className="font-display text-4xl text-blue-700 mb-4">
               Bubble Pop!
             </h2>
-            <p className="text-gray-600 text-base mb-2">
+            <p className="text-gray-600 text-lg mb-3">
               Listen to the sound, then pop the right bubble!
             </p>
-            <p className="text-gray-500 text-sm mb-8">
+            <p className="text-gray-500 text-base mb-10">
               ⏱ {GAME_DURATION} seconds · 10 pts per correct pop
             </p>
             <motion.button
               onClick={startGame}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-display text-2xl px-12 py-4 rounded-full shadow-lg"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-display text-3xl px-16 py-6 rounded-full shadow-lg"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -255,41 +255,41 @@ export default function BubblePopPage() {
       {phase === "playing" && (
         <div className="flex-1 flex flex-col relative overflow-hidden">
           {/* HUD */}
-          <div className="flex items-center justify-between px-4 py-2 bg-white/50 backdrop-blur-sm gap-3 z-10">
+          <div className="flex items-center justify-between px-6 py-4 bg-white/50 backdrop-blur-sm gap-4 z-10">
             {/* ターゲット */}
             <AnimatePresence mode="wait">
               {target && (
                 <motion.button
                   key={target.id}
                   onClick={() => play(target.audioFile)}
-                  className="flex items-center gap-2 bg-white rounded-2xl px-4 py-2 shadow font-bold min-w-0"
+                  className="flex items-center gap-3 bg-white rounded-2xl px-6 py-3 shadow font-bold min-w-0"
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: -20, opacity: 0 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <span className="text-gray-500 text-sm">Pop:</span>
-                  <span className="font-display text-3xl text-blue-700">
+                  <span className="text-gray-500 text-base">Pop:</span>
+                  <span className="font-display text-5xl text-blue-700">
                     {target.letter}
                   </span>
-                  <span className="text-xl">🔊</span>
+                  <span className="text-2xl">🔊</span>
                 </motion.button>
               )}
             </AnimatePresence>
 
             {/* タイマー */}
             <div
-              className={`font-display text-4xl font-bold tabular-nums ${timerColor}`}
+              className={`font-display text-5xl font-bold tabular-nums ${timerColor}`}
             >
               {timeLeft}s
             </div>
 
             {/* スコア */}
-            <div className="bg-white rounded-2xl px-4 py-2 shadow text-center">
-              <div className="text-xs text-gray-400 font-bold uppercase tracking-wide">
+            <div className="bg-white rounded-2xl px-6 py-3 shadow text-center">
+              <div className="text-sm text-gray-400 font-bold uppercase tracking-wide">
                 Score
               </div>
-              <div className="font-display text-2xl text-purple-600">{score}</div>
+              <div className="font-display text-3xl text-purple-600">{score}</div>
             </div>
           </div>
 
@@ -351,7 +351,7 @@ export default function BubblePopPage() {
                     />
                     <span
                       className="font-display text-white drop-shadow-md select-none z-10"
-                      style={{ fontSize: bubble.size * 0.36 }}
+                      style={{ fontSize: Math.max(bubble.size * 0.4, 32) }}
                     >
                       {bubble.phoneme.letter}
                     </span>
@@ -367,35 +367,35 @@ export default function BubblePopPage() {
       {phase === "result" && (
         <div className="flex-1 flex items-center justify-center p-8">
           <motion.div
-            className="bg-white rounded-3xl shadow-2xl p-10 max-w-sm w-full text-center"
+            className="bg-white rounded-3xl shadow-2xl p-12 max-w-lg w-full text-center"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
           >
-            <div className="text-7xl mb-4">
+            <div className="text-8xl mb-6">
               {score >= 80 ? "🏆" : score >= 40 ? "🎉" : "🫧"}
             </div>
-            <h2 className="font-display text-3xl text-blue-700 mb-6">
+            <h2 className="font-display text-4xl text-blue-700 mb-8">
               Time&apos;s Up!
             </h2>
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-purple-50 rounded-2xl p-4">
-                <div className="font-display text-4xl text-purple-600">
+            <div className="grid grid-cols-2 gap-6 mb-10">
+              <div className="bg-purple-50 rounded-2xl p-6">
+                <div className="font-display text-5xl text-purple-600">
                   {score}
                 </div>
-                <div className="text-sm text-gray-500 font-bold">Score</div>
+                <div className="text-base text-gray-500 font-bold">Score</div>
               </div>
-              <div className="bg-red-50 rounded-2xl p-4">
-                <div className="font-display text-4xl text-red-400">
+              <div className="bg-red-50 rounded-2xl p-6">
+                <div className="font-display text-5xl text-red-400">
                   {misses}
                 </div>
-                <div className="text-sm text-gray-500 font-bold">Misses</div>
+                <div className="text-base text-gray-500 font-bold">Misses</div>
               </div>
             </div>
-            <div className="flex gap-3 justify-center">
+            <div className="flex gap-4 justify-center">
               <motion.button
                 onClick={startGame}
-                className="bg-blue-500 text-white font-display text-xl px-8 py-3 rounded-full shadow"
+                className="bg-blue-500 text-white font-display text-2xl px-10 py-4 rounded-full shadow"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -403,7 +403,7 @@ export default function BubblePopPage() {
               </motion.button>
               <Link href="/games">
                 <motion.button
-                  className="bg-gray-100 text-gray-600 font-display text-xl px-8 py-3 rounded-full shadow"
+                  className="bg-gray-100 text-gray-600 font-display text-2xl px-10 py-4 rounded-full shadow"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
