@@ -6,6 +6,7 @@ import Link from "next/link";
 import { phonemes, Phoneme } from "@/data/phonemes";
 import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ function getAvailable(completedPhonemes: string[]): Phoneme[] {
 export default function WhackAMolePage() {
   const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
+  const soundEffects = getSoundEffects();
 
   const [phase, setPhase] = useState<Phase>("ready");
   const [score, setScore] = useState(0);
@@ -187,6 +189,7 @@ export default function WhackAMolePage() {
 
     if (mole.phoneme.id === targetRef.current?.id) {
       // 正解！
+      soundEffects.playHit(); // ヒット音を再生
       play(mole.phoneme.audioFile);
       setScore((s) => s + 10);
       setHitEffect(slotIndex);
@@ -206,6 +209,7 @@ export default function WhackAMolePage() {
       }, 350);
     } else {
       // 不正解
+      soundEffects.playError(); // エラー音を再生
       setMissEffect(slotIndex);
       setPopEffect("wrong");
       const newLives = livesRef.current - 1;
@@ -291,21 +295,46 @@ export default function WhackAMolePage() {
             {/* ターゲット */}
             <AnimatePresence mode="wait">
               {target && (
-                <motion.button
+                <motion.div
                   key={target.id}
-                  onClick={() => play(target.audioFile)}
-                  className="flex items-center gap-2 bg-green-100 rounded-xl px-3 py-1"
-                  initial={{ y: -8, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 8, opacity: 0 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="relative"
+                  initial={{ y: -8, opacity: 0, scale: 0.9 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: 8, opacity: 0, scale: 0.9 }}
                 >
-                  <span className="text-gray-500 text-sm font-bold">Hit:</span>
-                  <span className="font-display text-3xl text-green-700">
-                    {target.letter}
-                  </span>
-                  <span className="text-lg">🔊</span>
-                </motion.button>
+                  <motion.button
+                    onClick={() => play(target.audioFile)}
+                    className="flex items-center gap-3 bg-gradient-to-r from-yellow-300 to-yellow-400 rounded-2xl px-6 py-3 shadow-lg border-4 border-yellow-500"
+                    whileTap={{ scale: 0.95 }}
+                    animate={{
+                      boxShadow: [
+                        "0 0 20px rgba(250, 204, 21, 0.4)",
+                        "0 0 40px rgba(250, 204, 21, 0.8)",
+                        "0 0 20px rgba(250, 204, 21, 0.4)",
+                      ]
+                    }}
+                    transition={{
+                      boxShadow: {
+                        duration: 1.5,
+                        repeat: Infinity,
+                        repeatType: "loop"
+                      }
+                    }}
+                  >
+                    <span className="text-2xl font-bold text-yellow-800">🎯 HIT:</span>
+                    <span className="font-display text-6xl text-yellow-900 drop-shadow-md">
+                      {target.letter}
+                    </span>
+                    <span className="text-3xl animate-pulse">🔊</span>
+                  </motion.button>
+                  <motion.div
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm"
+                    animate={{ rotate: [0, -10, 10, -10, 0] }}
+                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
+                  >
+                    !
+                  </motion.div>
+                </motion.div>
               )}
             </AnimatePresence>
 

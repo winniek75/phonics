@@ -6,6 +6,7 @@ import Link from "next/link";
 import { phonemes, Phoneme } from "@/data/phonemes";
 import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
@@ -75,6 +76,7 @@ function spawnBubble(phoneme: Phoneme): Bubble {
 export default function BubblePopPage() {
   const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
+  const soundEffects = getSoundEffects();
 
   const [phase, setPhase] = useState<"ready" | "playing" | "result">("ready");
   const [score, setScore] = useState(0);
@@ -168,6 +170,7 @@ export default function BubblePopPage() {
       // ポンッ！エフェクト
       setEffects((e) => ({ ...e, [bubble.id]: "pop" }));
       setScore((s) => s + 10);
+      soundEffects.playPop(); // ポップ音を再生
       play(bubble.phoneme.audioFile);
 
       setTimeout(() => {
@@ -189,6 +192,7 @@ export default function BubblePopPage() {
       // ぐにゃ！エフェクト
       setEffects((e) => ({ ...e, [bubble.id]: "squish" }));
       setMisses((m) => m + 1);
+      soundEffects.playError(); // エラー音を再生
       setTimeout(() => {
         setEffects((e) => {
           const copy = { ...e };

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { phonemes, Phoneme } from "@/data/phonemes";
 import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
@@ -143,6 +144,7 @@ function FishShape({
 export default function WordFishingPage() {
   const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
+  const soundEffects = getSoundEffects();
 
   const [phase, setPhase] = useState<Phase>("ready");
   const [round, setRound] = useState(0);
@@ -222,12 +224,14 @@ export default function WordFishingPage() {
     setPoppingId(f.id);
 
     if (f.isTarget) {
+      soundEffects.playSplash(); // スプラッシュ音を再生
       setScore((s) => s + 10);
       setCaughtWords((prev) => [...prev, f.word]);
       setFeedback({ ok: true, word: f.word });
       const wa = f.phoneme.wordAudioFiles?.[f.word];
       if (wa) play(wa);
     } else {
+      soundEffects.playError(); // エラー音を再生
       setFeedback({ ok: false, word: f.word });
     }
 
