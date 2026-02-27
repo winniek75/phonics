@@ -73,7 +73,7 @@ function spawnBubble(phoneme: Phoneme): Bubble {
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function BubblePopPage() {
-  const { completedPhonemes, updateGameScore } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
 
   const [phase, setPhase] = useState<"ready" | "playing" | "result">("ready");
@@ -87,7 +87,9 @@ export default function BubblePopPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const targetRef = useRef<Phoneme | null>(null);
 
-  const available = getAvailablePhonemes(completedPhonemes);
+  const available = selectedPhonemes && selectedPhonemes.length > 0
+    ? phonemes.filter(p => selectedPhonemes.includes(p.id))
+    : getAvailablePhonemes(completedPhonemes);
 
   // 新しいターゲットを選んで読み上げ
   const pickTarget = useCallback(

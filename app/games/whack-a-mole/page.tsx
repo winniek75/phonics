@@ -57,7 +57,7 @@ function getAvailable(completedPhonemes: string[]): Phoneme[] {
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function WhackAMolePage() {
-  const { completedPhonemes, updateGameScore } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
 
   const [phase, setPhase] = useState<Phase>("ready");
@@ -76,7 +76,9 @@ export default function WhackAMolePage() {
   const spawnRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const speedRef = useRef(1800); // ms per spawn
 
-  const available = getAvailable(completedPhonemes);
+  const available = selectedPhonemes && selectedPhonemes.length > 0
+    ? phonemes.filter(p => selectedPhonemes.includes(p.id))
+    : getAvailable(completedPhonemes);
 
   const pickTarget = useCallback(
     (pool: Phoneme[]) => {

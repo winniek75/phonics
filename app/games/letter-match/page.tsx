@@ -15,13 +15,16 @@ interface Question {
   choices: { letter: string; phonemeId: string }[];
 }
 
-function generateQuestions(): Question[] {
-  const pool = phonemes.slice(0, 20); // use first 20 phonemes
+function generateQuestions(selectedPhonemes?: string[]): Question[] {
+  const allPhonemes = selectedPhonemes && selectedPhonemes.length > 0
+    ? phonemes.filter(p => selectedPhonemes.includes(p.id))
+    : phonemes;
+  const pool = allPhonemes.slice(0, 20); // use first 20 phonemes
   return pool
     .sort(() => Math.random() - 0.5)
     .slice(0, 10)
     .map((p) => {
-      const wrong = phonemes
+      const wrong = allPhonemes
         .filter((x) => x.id !== p.id)
         .sort(() => Math.random() - 0.5)
         .slice(0, 5);
@@ -42,7 +45,7 @@ function generateQuestions(): Question[] {
 
 export default function LetterMatchGame() {
   const { play } = useAudio();
-  const { updateGameScore } = useProgressStore();
+  const { updateGameScore, selectedPhonemes } = useProgressStore();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
@@ -51,8 +54,8 @@ export default function LetterMatchGame() {
   const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
-    setQuestions(generateQuestions());
-  }, []);
+    setQuestions(generateQuestions(selectedPhonemes));
+  }, [selectedPhonemes]);
 
   const question = questions[currentQ];
 

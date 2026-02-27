@@ -135,7 +135,7 @@ function buildDeck(diff: Difficulty, available: Phoneme[]): CardData[] {
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function MemoryMatchPage() {
-  const { completedPhonemes, updateGameScore } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
 
   const [phase, setPhase] = useState<Phase>("menu");
@@ -148,7 +148,9 @@ export default function MemoryMatchPage() {
   const [elapsedSec, setElapsedSec] = useState(0);
   const [locked, setLocked] = useState(false);
 
-  const available = getAvailable(completedPhonemes);
+  const available = selectedPhonemes && selectedPhonemes.length > 0
+    ? phonemes.filter(p => selectedPhonemes.includes(p.id))
+    : getAvailable(completedPhonemes);
 
   // ゲーム開始
   const startGame = useCallback(

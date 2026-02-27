@@ -1,6 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useState } from "react";
+import { phonemes, groupColors } from "@/data/phonemes";
+import { useProgressStore } from "@/store/progressStore";
 
 const games = [
   // ── 既存 ──────────────────────────────────────────────────────────────
@@ -72,6 +75,153 @@ const games = [
 ];
 
 export default function GamesPage() {
+  const [showCharacterSelection, setShowCharacterSelection] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const { selectedPhonemes, setSelectedPhonemes } = useProgressStore();
+  const [tempSelectedPhonemes, setTempSelectedPhonemes] = useState<string[]>(selectedPhonemes || []);
+
+  const handleGameClick = (gameId: string) => {
+    setSelectedGame(gameId);
+    setShowCharacterSelection(true);
+  };
+
+  const handleStartGame = () => {
+    if (tempSelectedPhonemes.length === 0) {
+      alert("少なくとも1つの文字を選択してください！");
+      return;
+    }
+    setSelectedPhonemes(tempSelectedPhonemes);
+    if (selectedGame) {
+      window.location.href = `/games/${selectedGame}`;
+    }
+  };
+
+  const togglePhoneme = (phonemeId: string) => {
+    setTempSelectedPhonemes(prev =>
+      prev.includes(phonemeId)
+        ? prev.filter(id => id !== phonemeId)
+        : [...prev, phonemeId]
+    );
+  };
+
+  const selectAll = () => {
+    setTempSelectedPhonemes(phonemes.map(p => p.id));
+  };
+
+  const selectNone = () => {
+    setTempSelectedPhonemes([]);
+  };
+
+  const selectGroup = (group: number) => {
+    const groupPhonemes = phonemes.filter(p => p.group === group).map(p => p.id);
+    const hasAll = groupPhonemes.every(id => tempSelectedPhonemes.includes(id));
+    if (hasAll) {
+      setTempSelectedPhonemes(prev => prev.filter(id => !groupPhonemes.includes(id)));
+    } else {
+      setTempSelectedPhonemes(prev => [...new Set([...prev, ...groupPhonemes])]);
+    }
+  };
+
+  if (showCharacterSelection) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-100 to-indigo-100">
+        {/* Header */}
+        <header className="bg-white/80 backdrop-blur-sm shadow-sm px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+          <button
+            onClick={() => setShowCharacterSelection(false)}
+            className="text-purple-700 font-bold hover:text-purple-900 flex items-center gap-1"
+          >
+            ← <span className="hidden sm:inline">Back</span>
+          </button>
+          <h1 className="font-display text-2xl text-purple-700">文字を選択</h1>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-6 pb-32">
+          <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
+            <h2 className="font-display text-2xl mb-4 text-purple-800">
+              練習する文字を選んでください
+            </h2>
+            <p className="text-gray-600 mb-4">
+              選択された文字: {tempSelectedPhonemes.length} / {phonemes.length}
+            </p>
+
+            {/* Quick selection buttons */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                onClick={selectAll}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600"
+              >
+                すべて選択
+              </button>
+              <button
+                onClick={selectNone}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg font-bold hover:bg-gray-600"
+              >
+                選択解除
+              </button>
+              {[1, 2, 3, 4, 5, 6, 7].map(group => (
+                <button
+                  key={group}
+                  onClick={() => selectGroup(group)}
+                  className="px-4 py-2 rounded-lg font-bold text-white transition-colors"
+                  style={{ backgroundColor: groupColors[group] }}
+                >
+                  Group {group}
+                </button>
+              ))}
+            </div>
+
+            {/* Phoneme grid by groups */}
+            {[1, 2, 3, 4, 5, 6, 7].map(group => (
+              <div key={group} className="mb-6">
+                <h3
+                  className="font-bold text-lg mb-3 text-white px-3 py-1 rounded-lg inline-block"
+                  style={{ backgroundColor: groupColors[group] }}
+                >
+                  Group {group}
+                </h3>
+                <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+                  {phonemes.filter(p => p.group === group).map(phoneme => (
+                    <button
+                      key={phoneme.id}
+                      onClick={() => togglePhoneme(phoneme.id)}
+                      className={`
+                        aspect-square rounded-lg font-bold text-2xl transition-all
+                        ${tempSelectedPhonemes.includes(phoneme.id)
+                          ? 'ring-4 ring-offset-2'
+                          : 'opacity-50 hover:opacity-75'
+                        }
+                      `}
+                      style={{
+                        backgroundColor: tempSelectedPhonemes.includes(phoneme.id)
+                          ? groupColors[group]
+                          : '#e5e7eb',
+                        color: tempSelectedPhonemes.includes(phoneme.id) ? 'white' : '#6b7280',
+                        borderColor: groupColors[group],
+                        borderWidth: '2px',
+                        borderStyle: 'solid'
+                      }}
+                    >
+                      {phoneme.letter}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Start Game Button */}
+          <button
+            onClick={handleStartGame}
+            className="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl font-display text-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+          >
+            ゲームを開始！ 🎮
+          </button>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 to-indigo-100">
       {/* Header */}
@@ -102,7 +252,7 @@ export default function GamesPage() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: i * 0.07 }}
             >
-              <Link href={`/games/${game.id}`}>
+              <button onClick={() => handleGameClick(game.id)} className="w-full text-left">
                 <motion.div
                   className={`bg-gradient-to-br ${game.bg} rounded-3xl p-6 shadow-xl cursor-pointer text-white h-full`}
                   whileHover={{ scale: 1.03, y: -4 }}
@@ -117,7 +267,7 @@ export default function GamesPage() {
                     ▶ Play!
                   </div>
                 </motion.div>
-              </Link>
+              </button>
             </motion.div>
           ))}
         </div>

@@ -141,7 +141,7 @@ function FishShape({
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function WordFishingPage() {
-  const { completedPhonemes, updateGameScore } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
 
   const [phase, setPhase] = useState<Phase>("ready");
@@ -155,7 +155,9 @@ export default function WordFishingPage() {
   const [feedback, setFeedback] = useState<{ ok: boolean; word: string } | null>(null);
   const [roundLocked, setRoundLocked] = useState(false);
 
-  const available = getAvailable(completedPhonemes);
+  const available = selectedPhonemes && selectedPhonemes.length > 0
+    ? phonemes.filter(p => selectedPhonemes.includes(p.id))
+    : getAvailable(completedPhonemes);
 
   const setupRound = useCallback(
     (roundNum: number) => {

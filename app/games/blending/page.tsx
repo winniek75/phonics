@@ -14,10 +14,13 @@ interface Question {
   choices: string[];
 }
 
-function generateQuestions(): Question[] {
+function generateQuestions(selectedPhonemes?: string[]): Question[] {
   const wordPool: Question[] = [];
+  const phonemeList = selectedPhonemes && selectedPhonemes.length > 0
+    ? phonemes.filter(p => selectedPhonemes.includes(p.id))
+    : phonemes;
 
-  phonemes.forEach((p) => {
+  phonemeList.forEach((p) => {
     p.exampleWords.forEach((word) => {
       if (word.length >= 3 && word.length <= 5) {
         // Split word into rough phoneme segments
@@ -47,7 +50,7 @@ function generateQuestions(): Question[] {
 
 export default function BlendingGame() {
   const { play } = useAudio();
-  const { updateGameScore } = useProgressStore();
+  const { updateGameScore, selectedPhonemes } = useProgressStore();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
@@ -56,8 +59,8 @@ export default function BlendingGame() {
   const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
-    setQuestions(generateQuestions());
-  }, []);
+    setQuestions(generateQuestions(selectedPhonemes));
+  }, [selectedPhonemes]);
 
   const question = questions[currentQ];
 
