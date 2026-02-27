@@ -313,15 +313,15 @@ export default function WordFishingPage() {
                   exit={{ y: 16, opacity: 0 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <span className="text-gray-500 font-bold text-sm">Catch the</span>
+                  <span className="text-gray-500 font-bold text-sm">Listen & find the</span>
                   <span className="font-display text-3xl text-blue-700">
                     {currentPhoneme.letter}
                   </span>
                   <span className="text-gray-500 font-bold text-sm">word:</span>
-                  <span className="font-display text-2xl text-green-600">
-                    {targetWord}
+                  <span className="font-display text-2xl text-gray-400 bg-gray-200 px-3 py-1 rounded-lg">
+                    ???
                   </span>
-                  <span className="text-xl">🔊</span>
+                  <span className="text-xl animate-pulse">🔊</span>
                 </motion.button>
               )}
             </AnimatePresence>

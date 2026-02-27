@@ -77,6 +77,7 @@ export default function WhackAMolePage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const spawnRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const speedRef = useRef(1800); // ms per spawn
+  const nonTargetCountRef = useRef(0); // ターゲット以外のモグラが連続で出た回数
 
   const available = selectedPhonemes && selectedPhonemes.length > 0
     ? phonemes.filter(p => selectedPhonemes.includes(p.id))
@@ -103,11 +104,20 @@ export default function WhackAMolePage() {
         if (emptySlots.length === 0) return prev;
 
         const slotIndex = pickRandom(emptySlots);
-        // 正解モグラを 45% の確率で出す
-        const isTarget = Math.random() < 0.45;
+        // 連続でターゲット以外が3回出たら強制的にターゲットを出す
+        const forceTarget = nonTargetCountRef.current >= 3;
+        // 正解モグラを 65% の確率で出す（ターゲットが出やすく）
+        const isTarget = forceTarget || Math.random() < 0.65;
         const phoneme = isTarget
           ? pool.find((p) => p.id === targetId) ?? pickRandom(pool)
           : pickRandom(pool.filter((p) => p.id !== targetId)) ?? pickRandom(pool);
+
+        // カウンターを更新
+        if (isTarget) {
+          nonTargetCountRef.current = 0;
+        } else {
+          nonTargetCountRef.current += 1;
+        }
 
         const mole: Mole = { slotIndex, phoneme, hitAt: null };
         const next = [...prev];
@@ -136,6 +146,7 @@ export default function WhackAMolePage() {
   const startGame = useCallback(() => {
     livesRef.current = MAX_LIVES;
     speedRef.current = 2500; // ゆっくり
+    nonTargetCountRef.current = 0; // カウンターリセット
     setScore(0);
     setLives(MAX_LIVES);
     setTimeLeft(GAME_DURATION);
@@ -161,10 +172,10 @@ export default function WhackAMolePage() {
       });
     }, 1000);
 
-    // スポーン
+    // スポーン（より頻繁に）
     spawnRef.current = setInterval(() => {
       spawnMole(available, t.id);
-    }, 900);
+    }, 700);
 
     setPhase("playing");
   }, [available, pickTarget, spawnMole, endGame]);

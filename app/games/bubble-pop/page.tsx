@@ -20,6 +20,9 @@ interface Bubble {
   driftX: number;
   driftY: number;
   duration: number;
+  rotateDirection: number; // 回転方向
+  scaleVariation: number; // サイズ変動
+  floatPattern: 'sine' | 'cosine' | 'zigzag' | 'spiral'; // 浮遊パターン
 }
 
 type BubbleEffect = "pop" | "squish" | null;
@@ -58,16 +61,21 @@ function getAvailablePhonemes(completedPhonemes: string[]): Phoneme[] {
 }
 
 function spawnBubble(phoneme: Phoneme): Bubble {
+  const patterns: ('sine' | 'cosine' | 'zigzag' | 'spiral')[] = ['sine', 'cosine', 'zigzag', 'spiral'];
+
   return {
     id: nextId(),
     phoneme,
-    x: 10 + Math.random() * 70,  // より狭い範囲で配置
-    y: 15 + Math.random() * 65,  // より狭い範囲で配置
+    x: 5 + Math.random() * 80,   // より広い範囲で配置
+    y: 10 + Math.random() * 70,  // より広い範囲で配置
     size: 120 + Math.floor(Math.random() * 80), // 大きくする (120-200px)
     colorClass: pickRandom(BUBBLE_COLORS),
-    driftX: (Math.random() - 0.5) * 15, // ゆっくり
-    driftY: (Math.random() - 0.5) * 15, // ゆっくり
-    duration: 4 + Math.random() * 3,    // ゆっくり (4-7秒)
+    driftX: (Math.random() - 0.5) * 25, // よりダイナミックに
+    driftY: (Math.random() - 0.5) * 20, // よりダイナミックに
+    duration: 5 + Math.random() * 4,    // 少し長めに (5-9秒)
+    rotateDirection: Math.random() < 0.5 ? 1 : -1, // ランダム回転方向
+    scaleVariation: 0.8 + Math.random() * 0.4, // サイズ変動 (0.8-1.2倍)
+    floatPattern: pickRandom(patterns), // ランダム浮遊パターン
   };
 }
 
@@ -325,12 +333,45 @@ export default function BubblePopPage() {
                             scale: [1, 0.6, 1.1, 1],
                             scaleX: [1, 1.4, 0.9, 1],
                           }
-                        : {
-                            scale: 1,
-                            opacity: 1,
-                            x: [0, bubble.driftX, 0, -bubble.driftX, 0],
-                            y: [0, -bubble.driftY, 0, bubble.driftY, 0],
-                          }
+                        : (() => {
+                            // 浮遊パターンに基づいたアニメーション
+                            switch (bubble.floatPattern) {
+                              case 'sine':
+                                return {
+                                  scale: [bubble.scaleVariation, 1, bubble.scaleVariation],
+                                  x: [0, bubble.driftX * Math.sin(0.5), 0, bubble.driftX * Math.sin(1.5), 0],
+                                  y: [0, bubble.driftY * Math.sin(1), 0, bubble.driftY * Math.sin(2), 0],
+                                  rotate: [0, bubble.rotateDirection * 180, 0, bubble.rotateDirection * 360],
+                                };
+                              case 'cosine':
+                                return {
+                                  scale: [1, bubble.scaleVariation, 1],
+                                  x: [0, bubble.driftX * Math.cos(0.5), 0, bubble.driftX * Math.cos(1.5), 0],
+                                  y: [0, -bubble.driftY * Math.cos(1), 0, -bubble.driftY * Math.cos(2), 0],
+                                  rotate: [0, bubble.rotateDirection * 90, 0, bubble.rotateDirection * 180],
+                                };
+                              case 'zigzag':
+                                return {
+                                  scale: [bubble.scaleVariation, 1, bubble.scaleVariation, 1],
+                                  x: [0, bubble.driftX, -bubble.driftX * 0.5, bubble.driftX * 0.8, 0],
+                                  y: [0, bubble.driftY, -bubble.driftY, bubble.driftY * 0.6, 0],
+                                  rotate: [0, bubble.rotateDirection * 45, bubble.rotateDirection * -30, bubble.rotateDirection * 60, 0],
+                                };
+                              case 'spiral':
+                                return {
+                                  scale: [1, bubble.scaleVariation, 1.1, bubble.scaleVariation],
+                                  x: [0, bubble.driftX * 0.5, bubble.driftX, 0, -bubble.driftX * 0.3],
+                                  y: [0, -bubble.driftY * 0.3, bubble.driftY, -bubble.driftY * 0.8, 0],
+                                  rotate: [0, bubble.rotateDirection * 120, bubble.rotateDirection * 240, bubble.rotateDirection * 360],
+                                };
+                              default:
+                                return {
+                                  scale: 1,
+                                  x: [0, bubble.driftX, 0, -bubble.driftX, 0],
+                                  y: [0, -bubble.driftY, 0, bubble.driftY, 0],
+                                };
+                            }
+                          })()
                     }
                     transition={
                       effect
