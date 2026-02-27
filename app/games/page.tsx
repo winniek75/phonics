@@ -118,7 +118,10 @@ export default function GamesPage() {
     if (hasAll) {
       setTempSelectedPhonemes(prev => prev.filter(id => !groupPhonemes.includes(id)));
     } else {
-      setTempSelectedPhonemes(prev => [...new Set([...prev, ...groupPhonemes])]);
+      setTempSelectedPhonemes(prev => {
+        const combined = [...prev, ...groupPhonemes];
+        return combined.filter((id, index) => combined.indexOf(id) === index);
+      });
     }
   };
 
