@@ -339,7 +339,7 @@ export default function WhackAMolePage() {
           </AnimatePresence>
 
           {/* 3×3 グリッド */}
-          <div className="grid grid-cols-3 gap-4 w-full max-w-lg flex-1 content-center pb-4">
+          <div className="grid grid-cols-3 gap-6 w-full max-w-3xl flex-1 content-center pb-4">
             {Array.from({ length: HOLES }).map((_, i) => {
               const mole = moles[i];
               const isHit = hitEffect === i;
@@ -356,11 +356,11 @@ export default function WhackAMolePage() {
                   key={i}
                   onClick={() => handleWhack(i)}
                   className="relative flex flex-col items-center justify-end"
-                  style={{ minHeight: 120 }}
+                  style={{ minHeight: 160 }}
                   aria-label={`Hole ${i + 1}`}
                 >
                   {/* 穴 */}
-                  <div className="w-full h-10 bg-stone-600 rounded-full shadow-inner relative z-0">
+                  <div className="w-full h-12 bg-stone-600 rounded-full shadow-inner relative z-0">
                     <div className="absolute inset-x-2 top-1 bottom-0 bg-stone-700 rounded-full opacity-50" />
                   </div>
 
@@ -368,37 +368,47 @@ export default function WhackAMolePage() {
                   <AnimatePresence>
                     {mole && (
                       <motion.div
-                        className={`absolute bottom-7 w-20 h-20 rounded-full ${color} flex flex-col items-center justify-center shadow-xl border-4 border-white z-10 ${shadow}`}
-                        initial={{ y: 56, scale: 0.5 }}
+                        className={`absolute bottom-8 ${color} shadow-xl z-10`}
+                        style={{ width: 140, height: 140 }}
+                        initial={{ y: 80, scale: 0.5 }}
                         animate={
                           isHit
-                            ? { y: 56, scale: 0.3, opacity: 0 }
+                            ? { y: 80, scale: 0.3, opacity: 0 }
                             : isMiss
-                            ? { x: [-4, 4, -4, 4, 0] }
-                            : { y: 0, scale: 1 }
+                            ? { x: [-6, 6, -6, 6, 0] }
+                            : { y: -20, scale: 1 }
                         }
-                        exit={{ y: 56, scale: 0.4, transition: { duration: 0.2 } }}
+                        exit={{ y: 80, scale: 0.4, transition: { duration: 0.2 } }}
                         transition={
                           isMiss
                             ? { duration: 0.3 }
                             : { type: "spring", stiffness: 380, damping: 22 }
                         }
                       >
-                        {/* 目 */}
-                        <div className="flex gap-1.5 mb-1">
-                          {[0, 1].map((e) => (
-                            <div
-                              key={e}
-                              className="w-3 h-3 bg-white rounded-full flex items-center justify-center"
-                            >
-                              <div className="w-1.5 h-1.5 bg-gray-800 rounded-full" />
-                            </div>
-                          ))}
-                        </div>
-                        {/* 文字 */}
-                        <span className="font-display text-white text-xl drop-shadow">
+                        <div className="flex flex-col items-center justify-center rounded-t-full bg-inherit w-full h-full relative">
+                          {/* 耳 */}
+                          <div className="absolute top-4 flex gap-12">
+                            <div className="w-8 h-10 bg-inherit rounded-full opacity-90" />
+                            <div className="w-8 h-10 bg-inherit rounded-full opacity-90" />
+                          </div>
+                          {/* 目 */}
+                          <div className="flex gap-3 mb-2 mt-8">
+                            {[0, 1].map((e) => (
+                              <div
+                                key={e}
+                                className="w-5 h-5 bg-white rounded-full flex items-center justify-center"
+                              >
+                                <div className="w-3 h-3 bg-gray-800 rounded-full" />
+                              </div>
+                            ))}
+                          </div>
+                          {/* 鼻 */}
+                          <div className="w-4 h-3 bg-pink-300 rounded-full mb-2" />
+                          {/* 文字 */}
+                          <span className="font-display text-white text-4xl font-bold drop-shadow-lg">
                           {mole.phoneme.letter}
-                        </span>
+                          </span>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>

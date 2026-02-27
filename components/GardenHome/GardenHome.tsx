@@ -246,6 +246,10 @@ export default function GardenHome() {
           <span className="text-2xl">⭐</span>
           <span className="text-xs font-bold">Progress</span>
         </Link>
+        <Link href="/teacher-settings" className="flex flex-col items-center gap-1 text-gray-500 hover:text-purple-600 transition-colors">
+          <span className="text-2xl">🎓</span>
+          <span className="text-xs font-bold">Teacher</span>
+        </Link>
       </nav>
 
       <div className="h-20" /> {/* Bottom nav spacer */}

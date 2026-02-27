@@ -21,11 +21,20 @@ interface ProgressState {
   profileName: string;
   profileAvatarId: string;
 
+  // 講師モード用
+  teacherMode: boolean;
+  selectedPhonemes: string[]; // 講師が選択した学習対象文字
+
   markPhonemeComplete: (id: string) => void;
   updateGameScore: (game: keyof GameScores, score: number) => void;
   masterTrickyWord: (word: string) => void;
   setProfile: (name: string, avatarId: string) => void;
   resetProgress: () => void;
+
+  // 講師モード用
+  setTeacherMode: (enabled: boolean) => void;
+  setSelectedPhonemes: (phonemes: string[]) => void;
+  setCompletedPhonemes: (phonemes: string[]) => void;
 }
 
 const defaultState = {
@@ -43,6 +52,8 @@ const defaultState = {
   masteredTrickyWords: [] as string[],
   profileName: "Learner",
   profileAvatarId: "🌟",
+  teacherMode: false,
+  selectedPhonemes: [] as string[],
 };
 
 export const useProgressStore = create<ProgressState>()(
@@ -76,6 +87,13 @@ export const useProgressStore = create<ProgressState>()(
         set({ profileName: name, profileAvatarId: avatarId }),
 
       resetProgress: () => set({ ...defaultState }),
+
+      // 講師モード用
+      setTeacherMode: (enabled: boolean) => set({ teacherMode: enabled }),
+
+      setSelectedPhonemes: (phonemes: string[]) => set({ selectedPhonemes: phonemes }),
+
+      setCompletedPhonemes: (phonemes: string[]) => set({ completedPhonemes: phonemes }),
     }),
     {
       name: "jolly-phonics-progress",
