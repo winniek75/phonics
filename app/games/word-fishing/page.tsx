@@ -26,7 +26,7 @@ type Phase = "ready" | "playing" | "result";
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 
 const TOTAL_ROUNDS = 10;
-const FISH_PER_ROUND = 5;
+const FISH_PER_ROUND = 4; // 少なくして大きく
 
 const FISH_COLORS = [
   "#f87171", "#60a5fa", "#4ade80",
@@ -70,9 +70,9 @@ function makeFish(
     phoneme,
     isTarget,
     color: pickRandom(FISH_COLORS),
-    size: 54 + Math.floor(Math.random() * 26),
+    size: 90 + Math.floor(Math.random() * 40), // 大きく (90-130)
     direction: dir as 1 | -1,
-    swimDuration: 7 + Math.random() * 5,
+    swimDuration: 10 + Math.random() * 8, // ゆっくり (10-18秒)
     laneY,
   };
 }
@@ -128,8 +128,8 @@ function FishShape({
         }}
       >
         <span
-          className="font-display text-white drop-shadow select-none"
-          style={{ fontSize: Math.max(12, size * 0.23) }}
+          className="font-display text-white drop-shadow-lg select-none font-bold"
+          style={{ fontSize: Math.max(20, size * 0.35) }}
         >
           {label}
         </span>

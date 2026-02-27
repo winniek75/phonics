@@ -109,8 +109,8 @@ export default function WhackAMolePage() {
         const next = [...prev];
         next[slotIndex] = mole;
 
-        // 一定時間後に潜る
-        const hideMs = Math.max(700, speedRef.current * 0.85);
+        // 一定時間後に潜る（ゆっくり）
+        const hideMs = Math.max(1200, speedRef.current * 1.2);
         setTimeout(() => {
           setMoles((m) =>
             m.map((s, i) => (i === slotIndex && s?.hitAt === null ? null : s))
@@ -131,7 +131,7 @@ export default function WhackAMolePage() {
 
   const startGame = useCallback(() => {
     livesRef.current = MAX_LIVES;
-    speedRef.current = 1800;
+    speedRef.current = 2500; // ゆっくり
     setScore(0);
     setLives(MAX_LIVES);
     setTimeLeft(GAME_DURATION);

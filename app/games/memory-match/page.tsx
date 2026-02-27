@@ -25,9 +25,9 @@ type Phase = "menu" | "playing" | "result";
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 
 const DIFFICULTY: Record<Difficulty, { cols: number; rows: number; label: string }> = {
-  easy:   { cols: 4, rows: 3, label: "4×3 — Easy" },
-  medium: { cols: 4, rows: 4, label: "4×4 — Medium" },
-  hard:   { cols: 5, rows: 4, label: "5×4 — Hard" },
+  easy:   { cols: 3, rows: 2, label: "3×2 — Easy" },    // 6枚（3ペア）
+  medium: { cols: 4, rows: 3, label: "4×3 — Medium" },  // 12枚（6ペア）
+  hard:   { cols: 4, rows: 4, label: "4×4 — Hard" },    // 16枚（8ペア）
 };
 
 const GROUP_COLORS: Record<number, string> = {
