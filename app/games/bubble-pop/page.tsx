@@ -101,6 +101,9 @@ export default function BubblePopPage() {
     ? phonemes.filter(p => selectedPhonemes.includes(p.id))
     : getAvailablePhonemes(completedPhonemes);
 
+  // フォールバック: availableが空の場合は最初のグループを使用
+  const safeAvailable = available.length > 0 ? available : phonemes.filter((p) => p.group === 1);
+
   // 新しいターゲットを選んで読み上げ
   const pickTarget = useCallback(
     (pool: Phoneme[]) => {
@@ -142,11 +145,11 @@ export default function BubblePopPage() {
     setTimeLeft(GAME_DURATION);
     setEffects({});
 
-    const t = pickTarget(available);
-    const initialBubbles = replenish([], t.id, available);
+    const t = pickTarget(safeAvailable);
+    const initialBubbles = replenish([], t.id, safeAvailable);
     setBubbles(initialBubbles);
     setPhase("playing");
-  }, [available, pickTarget, replenish]);
+  }, [safeAvailable, pickTarget, replenish]);
 
   // カウントダウン
   useEffect(() => {
@@ -187,8 +190,8 @@ export default function BubblePopPage() {
           // たまにターゲット変更
           const currentTarget = targetRef.current!;
           const newTarget =
-            Math.random() < 0.35 ? pickTarget(available) : currentTarget;
-          return replenish(filtered, newTarget.id, available);
+            Math.random() < 0.35 ? pickTarget(safeAvailable) : currentTarget;
+          return replenish(filtered, newTarget.id, safeAvailable);
         });
         setEffects((e) => {
           const copy = { ...e };

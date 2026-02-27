@@ -83,6 +83,9 @@ export default function WhackAMolePage() {
     ? phonemes.filter(p => selectedPhonemes.includes(p.id))
     : getAvailable(completedPhonemes);
 
+  // フォールバック: availableが空の場合は最初のグループを使用
+  const safeAvailable = available.length > 0 ? available : phonemes.filter((p) => p.group === 1);
+
   const pickTarget = useCallback(
     (pool: Phoneme[]) => {
       const t = pickRandom(pool);
@@ -155,7 +158,7 @@ export default function WhackAMolePage() {
     setMissEffect(null);
     setPopEffect(null);
 
-    const t = pickTarget(available);
+    const t = pickTarget(safeAvailable);
 
     // カウントダウン
     timerRef.current = setInterval(() => {
@@ -174,11 +177,11 @@ export default function WhackAMolePage() {
 
     // スポーン（より頻繁に）
     spawnRef.current = setInterval(() => {
-      spawnMole(available, t.id);
+      spawnMole(safeAvailable, t.id);
     }, 700);
 
     setPhase("playing");
-  }, [available, pickTarget, spawnMole, endGame]);
+  }, [safeAvailable, pickTarget, spawnMole, endGame]);
 
   // スコア保存
   useEffect(() => {
@@ -216,7 +219,7 @@ export default function WhackAMolePage() {
         setHitEffect(null);
         setPopEffect(null);
         // 35% の確率でターゲット変更
-        if (Math.random() < 0.35) pickTarget(available);
+        if (Math.random() < 0.35) pickTarget(safeAvailable);
       }, 350);
     } else {
       // 不正解
