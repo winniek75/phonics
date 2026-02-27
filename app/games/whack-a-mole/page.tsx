@@ -106,8 +106,8 @@ export default function WhackAMolePage() {
         const slotIndex = pickRandom(emptySlots);
         // 連続でターゲット以外が3回出たら強制的にターゲットを出す
         const forceTarget = nonTargetCountRef.current >= 3;
-        // 正解モグラを 65% の確率で出す（ターゲットが出やすく）
-        const isTarget = forceTarget || Math.random() < 0.65;
+        // 正解モグラを 85% の確率で出す（ターゲットが出やすく）
+        const isTarget = forceTarget || Math.random() < 0.85;
         const phoneme = isTarget
           ? pool.find((p) => p.id === targetId) ?? pickRandom(pool)
           : pickRandom(pool.filter((p) => p.id !== targetId)) ?? pickRandom(pool);

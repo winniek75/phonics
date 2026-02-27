@@ -339,15 +339,15 @@ export default function BubblePopPage() {
                               case 'sine':
                                 return {
                                   scale: [bubble.scaleVariation, 1, bubble.scaleVariation],
-                                  x: [0, bubble.driftX * Math.sin(0.5), 0, bubble.driftX * Math.sin(1.5), 0],
-                                  y: [0, bubble.driftY * Math.sin(1), 0, bubble.driftY * Math.sin(2), 0],
+                                  x: [0, bubble.driftX * 0.8, 0, bubble.driftX * -0.8, 0],
+                                  y: [0, bubble.driftY * 0.6, 0, bubble.driftY * -0.6, 0],
                                   rotate: [0, bubble.rotateDirection * 180, 0, bubble.rotateDirection * 360],
                                 };
                               case 'cosine':
                                 return {
                                   scale: [1, bubble.scaleVariation, 1],
-                                  x: [0, bubble.driftX * Math.cos(0.5), 0, bubble.driftX * Math.cos(1.5), 0],
-                                  y: [0, -bubble.driftY * Math.cos(1), 0, -bubble.driftY * Math.cos(2), 0],
+                                  x: [0, bubble.driftX * 0.7, 0, bubble.driftX * -0.7, 0],
+                                  y: [0, -bubble.driftY * 0.5, 0, -bubble.driftY * 0.8, 0],
                                   rotate: [0, bubble.rotateDirection * 90, 0, bubble.rotateDirection * 180],
                                 };
                               case 'zigzag':

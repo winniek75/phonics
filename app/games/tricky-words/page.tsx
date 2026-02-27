@@ -29,7 +29,7 @@ function generateQuestions(): Question[] {
 }
 
 export default function TrickyWordsGame() {
-  const { play } = useAudio();
+  const { play, speakWord } = useAudio();
   const { updateGameScore, masterTrickyWord, masteredTrickyWords } = useProgressStore();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
@@ -46,10 +46,13 @@ export default function TrickyWordsGame() {
 
   useEffect(() => {
     if (question) {
-      const t = setTimeout(() => play(question.audioFile), 300);
+      // 音声ファイルが存在しない場合はTTSを使用
+      const t = setTimeout(() => {
+        speakWord(question.word);
+      }, 300);
       return () => clearTimeout(t);
     }
-  }, [currentQ, question]);
+  }, [currentQ, question, speakWord]);
 
   const handleAnswer = (choice: string) => {
     if (selected) return;
@@ -144,7 +147,7 @@ export default function TrickyWordsGame() {
                 {/* Audio prompt */}
                 <div className="text-center mb-8">
                   <motion.button
-                    onClick={() => play(question.audioFile)}
+                    onClick={() => speakWord(question.word)}
                     className="w-32 h-32 bg-green-500 text-white rounded-full shadow-2xl font-display text-xl flex flex-col items-center justify-center mx-auto"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
