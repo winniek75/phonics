@@ -91,6 +91,7 @@ export default function WhackAMolePage() {
       const t = pickRandom(pool);
       setTarget(t);
       targetRef.current = t;
+      nonTargetCountRef.current = 0; // ターゲット変更時にカウンターリセット
       play(t.audioFile);
       return t;
     },
@@ -99,12 +100,15 @@ export default function WhackAMolePage() {
 
   // ランダムな空スロットに 1 匹モグラを出す
   const spawnMole = useCallback(
-    (pool: Phoneme[], targetId: string) => {
+    (pool: Phoneme[]) => {
       setMoles((prev) => {
         const emptySlots = prev
           .map((m, i) => (m === null ? i : -1))
           .filter((i) => i >= 0);
         if (emptySlots.length === 0) return prev;
+
+        const currentTargetId = targetRef.current?.id;
+        if (!currentTargetId) return prev;
 
         const slotIndex = pickRandom(emptySlots);
         // 連続でターゲット以外が3回出たら強制的にターゲットを出す
@@ -112,8 +116,8 @@ export default function WhackAMolePage() {
         // 正解モグラを 85% の確率で出す（ターゲットが出やすく）
         const isTarget = forceTarget || Math.random() < 0.85;
         const phoneme = isTarget
-          ? pool.find((p) => p.id === targetId) ?? pickRandom(pool)
-          : pickRandom(pool.filter((p) => p.id !== targetId)) ?? pickRandom(pool);
+          ? pool.find((p) => p.id === currentTargetId) ?? pickRandom(pool)
+          : pickRandom(pool.filter((p) => p.id !== currentTargetId)) ?? pickRandom(pool);
 
         // カウンターを更新
         if (isTarget) {
@@ -177,7 +181,7 @@ export default function WhackAMolePage() {
 
     // スポーン（より頻繁に）
     spawnRef.current = setInterval(() => {
-      spawnMole(safeAvailable, t.id);
+      spawnMole(safeAvailable);
     }, 700);
 
     setPhase("playing");
