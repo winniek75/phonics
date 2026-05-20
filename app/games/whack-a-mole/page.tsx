@@ -8,6 +8,8 @@ import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
 import { getSoundEffects } from "@/utils/soundEffects";
 
+declare global { interface Window { WiseXP?: any; } }
+
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
 interface Mole {
@@ -78,6 +80,10 @@ export default function WhackAMolePage() {
   const spawnRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const speedRef = useRef(1800); // ms per spawn
   const nonTargetCountRef = useRef(0); // ターゲット以外のモグラが連続で出た回数
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
+  }, []);
 
   const available = selectedPhonemes && selectedPhonemes.length > 0
     ? phonemes.filter(p => selectedPhonemes.includes(p.id))
@@ -189,8 +195,13 @@ export default function WhackAMolePage() {
 
   // スコア保存
   useEffect(() => {
-    if (phase === "result") updateGameScore("whackAMole", score);
-  }, [phase, score, updateGameScore]);
+    if (phase === "result") {
+      updateGameScore("whackAMole", score);
+      const hits = Math.floor(score / 10);
+      const totalAttempts = hits + (MAX_LIVES - lives);
+      if (window.WiseXP) window.WiseXP.reportGame({ score, correct: hits, total: totalAttempts, maxCombo: 0, grade: 'whackAMole' });
+    }
+  }, [phase, score, lives, updateGameScore]);
 
   // クリーンアップ
   useEffect(() => {
@@ -229,6 +240,7 @@ export default function WhackAMolePage() {
       // 不正解
       soundEffects.playError(); // エラー音を再生
       addWrongAnswer("whackAMole", targetRef.current?.letter || "?", mole.phoneme.letter);
+      if (window.WiseXP) window.WiseXP.reportWrong({ question: targetRef.current?.letter || "?", correct: targetRef.current?.letter || "?", playerAnswer: mole.phoneme.letter });
       setMissEffect(slotIndex);
       setPopEffect("wrong");
       const newLives = livesRef.current - 1;

@@ -7,6 +7,8 @@ import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import { getSoundEffects } from "@/utils/soundEffects";
 
+declare global { interface Window { WiseXP?: any; } }
+
 interface Question {
   word: string;
   audioFile: string;
@@ -41,6 +43,7 @@ export default function TrickyWordsGame() {
   const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
     setQuestions(generateQuestions());
   }, []);
 
@@ -69,6 +72,7 @@ export default function TrickyWordsGame() {
       setFeedback("wrong");
       soundEffects.playError();
       addWrongAnswer("trickyWords", question.word, choice);
+      if (window.WiseXP) window.WiseXP.reportWrong({ question: question.word, correct: question.word, playerAnswer: choice });
     }
 
     setTimeout(() => {
@@ -76,7 +80,9 @@ export default function TrickyWordsGame() {
       setSelected(null);
       if (currentQ + 1 >= questions.length) {
         setGameOver(true);
-        updateGameScore("trickyWords", score + (isCorrect ? 1 : 0));
+        const finalScore = score + (isCorrect ? 1 : 0);
+        updateGameScore("trickyWords", finalScore);
+        if (window.WiseXP) window.WiseXP.reportGame({ score: finalScore, correct: finalScore, total: questions.length, maxCombo: 0, grade: 'trickyWords' });
       } else {
         setCurrentQ((q) => q + 1);
       }

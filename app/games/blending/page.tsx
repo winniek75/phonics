@@ -7,6 +7,8 @@ import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import { getSoundEffects } from "@/utils/soundEffects";
 
+declare global { interface Window { WiseXP?: any; } }
+
 interface Question {
   word: string;
   phonemeIds: string[];
@@ -61,6 +63,10 @@ export default function BlendingGame() {
   const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
+  }, []);
+
+  useEffect(() => {
     setQuestions(generateQuestions(selectedPhonemes));
   }, [selectedPhonemes]);
 
@@ -79,6 +85,7 @@ export default function BlendingGame() {
       setFeedback("wrong");
       soundEffects.playError();
       addWrongAnswer("blending", question.word, choice);
+      if (window.WiseXP) window.WiseXP.reportWrong({ question: question.word, correct: question.word, playerAnswer: choice });
     }
 
     setTimeout(() => {
@@ -86,7 +93,9 @@ export default function BlendingGame() {
       setSelected(null);
       if (currentQ + 1 >= questions.length) {
         setGameOver(true);
-        updateGameScore("blending", score + (isCorrect ? 1 : 0));
+        const finalScore = score + (isCorrect ? 1 : 0);
+        updateGameScore("blending", finalScore);
+        if (window.WiseXP) window.WiseXP.reportGame({ score: finalScore, correct: finalScore, total: questions.length, maxCombo: 0, grade: 'blending' });
       } else {
         setCurrentQ((q) => q + 1);
       }

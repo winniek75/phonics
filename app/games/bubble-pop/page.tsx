@@ -8,6 +8,8 @@ import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
 import { getSoundEffects } from "@/utils/soundEffects";
 
+declare global { interface Window { WiseXP?: any; } }
+
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
 interface Bubble {
@@ -89,6 +91,10 @@ export default function BubblePopPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const targetRef = useRef<Phoneme | null>(null);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
+  }, []);
+
   const available = selectedPhonemes && selectedPhonemes.length > 0
     ? phonemes.filter(p => selectedPhonemes.includes(p.id))
     : getAvailablePhonemes(completedPhonemes);
@@ -161,8 +167,11 @@ export default function BubblePopPage() {
 
   // スコア保存
   useEffect(() => {
-    if (phase === "result") updateGameScore("bubblePop", score);
-  }, [phase, score, updateGameScore]);
+    if (phase === "result") {
+      updateGameScore("bubblePop", score);
+      if (window.WiseXP) window.WiseXP.reportGame({ score, correct: Math.floor(score / 10), total: Math.floor(score / 10) + misses, maxCombo: 0, grade: 'bubblePop' });
+    }
+  }, [phase, score, misses, updateGameScore]);
 
   // 泡タップ
   const handleTap = (bubble: Bubble) => {
@@ -197,6 +206,7 @@ export default function BubblePopPage() {
       setMisses((m) => m + 1);
       soundEffects.playError(); // エラー音を再生
       addWrongAnswer("bubblePop", targetRef.current?.letter || "?", bubble.phoneme.letter);
+      if (window.WiseXP) window.WiseXP.reportWrong({ question: targetRef.current?.letter || "?", correct: targetRef.current?.letter || "?", playerAnswer: bubble.phoneme.letter });
       setTimeout(() => {
         setEffects((e) => {
           const copy = { ...e };

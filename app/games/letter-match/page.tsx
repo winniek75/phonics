@@ -7,6 +7,8 @@ import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import { getSoundEffects } from "@/utils/soundEffects";
 
+declare global { interface Window { WiseXP?: any; } }
+
 interface Question {
   phonemeId: string;
   letter: string;
@@ -56,6 +58,10 @@ export default function LetterMatchGame() {
   const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
+  }, []);
+
+  useEffect(() => {
     setQuestions(generateQuestions(selectedPhonemes));
   }, [selectedPhonemes]);
 
@@ -78,6 +84,7 @@ export default function LetterMatchGame() {
       setFeedback("wrong");
       soundEffects.playError();
       addWrongAnswer("letterMatch", question.letter, letter);
+      if (window.WiseXP) window.WiseXP.reportWrong({ question: question.sound, correct: question.letter, playerAnswer: letter });
     }
 
     setTimeout(() => {
@@ -85,7 +92,9 @@ export default function LetterMatchGame() {
       setSelected(null);
       if (currentQ + 1 >= questions.length) {
         setGameOver(true);
-        updateGameScore("letterMatch", score + (isCorrect ? 1 : 0));
+        const finalScore = score + (isCorrect ? 1 : 0);
+        updateGameScore("letterMatch", finalScore);
+        if (window.WiseXP) window.WiseXP.reportGame({ score: finalScore, correct: finalScore, total: questions.length, maxCombo: 0, grade: 'letterMatch' });
       } else {
         setCurrentQ((q) => q + 1);
       }
