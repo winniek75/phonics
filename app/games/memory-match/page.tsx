@@ -8,6 +8,8 @@ import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
 import { getSoundEffects } from "@/utils/soundEffects";
 
+declare global { interface Window { WiseXP?: any; } }
+
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -150,6 +152,10 @@ export default function MemoryMatchPage() {
   const [elapsedSec, setElapsedSec] = useState(0);
   const [locked, setLocked] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
+  }, []);
+
   const available = selectedPhonemes && selectedPhonemes.length > 0
     ? phonemes.filter(p => selectedPhonemes.includes(p.id))
     : getAvailable(completedPhonemes);
@@ -189,6 +195,7 @@ export default function MemoryMatchPage() {
         Math.floor(1000 / (moves + elapsedSec / 5))
       );
       updateGameScore("memoryMatch", score);
+      if (window.WiseXP) window.WiseXP.reportGame({ score, correct: pairCount, total: moves, maxCombo: 0, grade: 'memoryMatch' });
       setPhase("result");
     }
   }, [matched, deck.length, moves, elapsedSec, phase, updateGameScore]);
@@ -225,6 +232,7 @@ export default function MemoryMatchPage() {
         // ミス → 裏返す
         soundEffects.playError();
         addWrongAnswer("memoryMatch", cardA.display, cardB.display);
+        if (window.WiseXP) window.WiseXP.reportWrong({ question: cardA.display, correct: cardA.display, playerAnswer: cardB.display });
         setTimeout(() => {
           setFlipped([]);
           setLocked(false);

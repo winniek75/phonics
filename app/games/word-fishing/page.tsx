@@ -8,6 +8,8 @@ import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
 import { getSoundEffects } from "@/utils/soundEffects";
 
+declare global { interface Window { WiseXP?: any; } }
+
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
 interface Fish {
@@ -157,6 +159,10 @@ export default function WordFishingPage() {
   const [feedback, setFeedback] = useState<{ ok: boolean; word: string } | null>(null);
   const [roundLocked, setRoundLocked] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
+  }, []);
+
   const available = selectedPhonemes && selectedPhonemes.length > 0
     ? phonemes.filter(p => selectedPhonemes.includes(p.id))
     : getAvailable(completedPhonemes);
@@ -215,8 +221,11 @@ export default function WordFishingPage() {
   };
 
   useEffect(() => {
-    if (phase === "result") updateGameScore("wordFishing", score);
-  }, [phase, score, updateGameScore]);
+    if (phase === "result") {
+      updateGameScore("wordFishing", score);
+      if (window.WiseXP) window.WiseXP.reportGame({ score, correct: caughtWords.length, total: TOTAL_ROUNDS, maxCombo: 0, grade: 'wordFishing' });
+    }
+  }, [phase, score, caughtWords.length, updateGameScore]);
 
   const handleFishTap = (f: Fish) => {
     if (phase !== "playing" || roundLocked) return;
@@ -233,6 +242,7 @@ export default function WordFishingPage() {
     } else {
       soundEffects.playError(); // エラー音を再生
       addWrongAnswer("wordFishing", targetWord, f.word);
+      if (window.WiseXP) window.WiseXP.reportWrong({ question: targetWord, correct: targetWord, playerAnswer: f.word });
       setFeedback({ ok: false, word: f.word });
     }
 
