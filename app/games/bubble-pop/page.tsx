@@ -74,7 +74,7 @@ function spawnBubble(phoneme: Phoneme): Bubble {
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function BubblePopPage() {
-  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
   const { play } = useAudio();
   const soundEffects = getSoundEffects();
 
@@ -196,6 +196,7 @@ export default function BubblePopPage() {
       setEffects((e) => ({ ...e, [bubble.id]: "squish" }));
       setMisses((m) => m + 1);
       soundEffects.playError(); // エラー音を再生
+      addWrongAnswer("bubblePop", targetRef.current?.letter || "?", bubble.phoneme.letter);
       setTimeout(() => {
         setEffects((e) => {
           const copy = { ...e };

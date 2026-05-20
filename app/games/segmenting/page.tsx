@@ -5,6 +5,7 @@ import Link from "next/link";
 import { phonemes, groupColors } from "@/data/phonemes";
 import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 interface Question {
   word: string;
@@ -46,7 +47,8 @@ function generateQuestions(selectedPhonemes?: string[]): Question[] {
 
 export default function SegmentingGame() {
   const { play } = useAudio();
-  const { updateGameScore, selectedPhonemes } = useProgressStore();
+  const { updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
+  const soundEffects = getSoundEffects();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
@@ -88,7 +90,13 @@ export default function SegmentingGame() {
     const isCorrect = userAnswer.join("") === question.word;
     setChecked(true);
     setFeedback(isCorrect ? "correct" : "wrong");
-    if (isCorrect) setScore((s) => s + 1);
+    if (isCorrect) {
+      setScore((s) => s + 1);
+      soundEffects.playSuccess();
+    } else {
+      soundEffects.playError();
+      addWrongAnswer("segmenting", question.word, userAnswer.join(""));
+    }
 
     setTimeout(() => {
       if (currentQ + 1 >= questions.length) {

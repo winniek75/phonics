@@ -5,6 +5,7 @@ import Link from "next/link";
 import { phonemes, groupColors } from "@/data/phonemes";
 import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 interface Question {
   phonemeId: string;
@@ -45,7 +46,8 @@ function generateQuestions(selectedPhonemes?: string[]): Question[] {
 
 export default function LetterMatchGame() {
   const { play } = useAudio();
-  const { updateGameScore, selectedPhonemes } = useProgressStore();
+  const { updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
+  const soundEffects = getSoundEffects();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
@@ -71,8 +73,11 @@ export default function LetterMatchGame() {
     if (isCorrect) {
       setFeedback("correct");
       setScore((s) => s + 1);
+      soundEffects.playSuccess();
     } else {
       setFeedback("wrong");
+      soundEffects.playError();
+      addWrongAnswer("letterMatch", question.letter, letter);
     }
 
     setTimeout(() => {

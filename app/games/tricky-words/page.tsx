@@ -5,6 +5,7 @@ import Link from "next/link";
 import { trickyWords } from "@/data/trickyWords";
 import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 interface Question {
   word: string;
@@ -30,7 +31,8 @@ function generateQuestions(): Question[] {
 
 export default function TrickyWordsGame() {
   const { play, speakWord } = useAudio();
-  const { updateGameScore, masterTrickyWord, masteredTrickyWords } = useProgressStore();
+  const { updateGameScore, masterTrickyWord, masteredTrickyWords, addWrongAnswer } = useProgressStore();
+  const soundEffects = getSoundEffects();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
@@ -62,8 +64,11 @@ export default function TrickyWordsGame() {
       setFeedback("correct");
       setScore((s) => s + 1);
       masterTrickyWord(question.word);
+      soundEffects.playSuccess();
     } else {
       setFeedback("wrong");
+      soundEffects.playError();
+      addWrongAnswer("trickyWords", question.word, choice);
     }
 
     setTimeout(() => {

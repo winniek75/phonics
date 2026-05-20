@@ -142,7 +142,7 @@ function FishShape({
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function WordFishingPage() {
-  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
   const { play } = useAudio();
   const soundEffects = getSoundEffects();
 
@@ -232,6 +232,7 @@ export default function WordFishingPage() {
       if (wa) play(wa);
     } else {
       soundEffects.playError(); // エラー音を再生
+      addWrongAnswer("wordFishing", targetWord, f.word);
       setFeedback({ ok: false, word: f.word });
     }
 

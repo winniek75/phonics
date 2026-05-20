@@ -58,7 +58,7 @@ function getAvailable(completedPhonemes: string[]): Phoneme[] {
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function WhackAMolePage() {
-  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
   const { play } = useAudio();
   const soundEffects = getSoundEffects();
 
@@ -228,6 +228,7 @@ export default function WhackAMolePage() {
     } else {
       // 不正解
       soundEffects.playError(); // エラー音を再生
+      addWrongAnswer("whackAMole", targetRef.current?.letter || "?", mole.phoneme.letter);
       setMissEffect(slotIndex);
       setPopEffect("wrong");
       const newLives = livesRef.current - 1;

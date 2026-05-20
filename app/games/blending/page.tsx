@@ -5,6 +5,7 @@ import Link from "next/link";
 import { phonemes } from "@/data/phonemes";
 import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 interface Question {
   word: string;
@@ -50,7 +51,8 @@ function generateQuestions(selectedPhonemes?: string[]): Question[] {
 
 export default function BlendingGame() {
   const { play } = useAudio();
-  const { updateGameScore, selectedPhonemes } = useProgressStore();
+  const { updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
+  const soundEffects = getSoundEffects();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
@@ -72,10 +74,11 @@ export default function BlendingGame() {
     if (isCorrect) {
       setFeedback("correct");
       setScore((s) => s + 1);
-      play("/audio/sfx/correct.mp3");
+      soundEffects.playSuccess();
     } else {
       setFeedback("wrong");
-      play("/audio/sfx/wrong.mp3");
+      soundEffects.playError();
+      addWrongAnswer("blending", question.word, choice);
     }
 
     setTimeout(() => {

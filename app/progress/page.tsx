@@ -17,6 +17,8 @@ export default function ProgressPage() {
     profileAvatarId,
     setProfile,
     resetProgress,
+    wrongAnswers,
+    clearWrongAnswers,
   } = useProgressStore();
 
   const [showReset, setShowReset] = useState(false);
@@ -205,6 +207,50 @@ export default function ProgressPage() {
             ))}
           </div>
         </motion.section>
+
+        {/* Wrong Answers for Review */}
+        {wrongAnswers.length > 0 && (
+          <motion.section
+            className="bg-white rounded-3xl shadow-xl p-6 mb-6"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.35 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-xl text-gray-600">
+                📝 Wrong Answers for Review
+              </h2>
+              <button
+                onClick={clearWrongAnswers}
+                className="text-sm text-red-400 font-bold hover:text-red-600 transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+            <p className="text-gray-500 text-sm mb-3">
+              Recent mistakes ({wrongAnswers.length}) — review these to improve!
+            </p>
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {[...wrongAnswers].reverse().slice(0, 20).map((wa, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 bg-red-50 rounded-xl px-4 py-2 text-sm"
+                >
+                  <span className="text-red-400 font-bold uppercase text-xs w-24 shrink-0">
+                    {wa.game}
+                  </span>
+                  <span className="text-gray-600">
+                    Correct: <strong className="text-green-600">{wa.question}</strong>
+                  </span>
+                  <span className="text-gray-400">|</span>
+                  <span className="text-gray-600">
+                    Your answer: <strong className="text-red-500">{wa.userAnswer}</strong>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
 
         {/* Reset */}
         <motion.section

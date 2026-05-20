@@ -14,12 +14,20 @@ interface GameScores {
   memoryMatch: number;
 }
 
+interface WrongAnswer {
+  game: string;
+  question: string;       // the correct answer / question context
+  userAnswer: string;     // what the user chose
+  timestamp: number;
+}
+
 interface ProgressState {
   completedPhonemes: string[];
   gameScores: GameScores;
   masteredTrickyWords: string[];
   profileName: string;
   profileAvatarId: string;
+  wrongAnswers: WrongAnswer[];
 
   // 講師モード用
   teacherMode: boolean;
@@ -30,6 +38,8 @@ interface ProgressState {
   masterTrickyWord: (word: string) => void;
   setProfile: (name: string, avatarId: string) => void;
   resetProgress: () => void;
+  addWrongAnswer: (game: string, question: string, userAnswer: string) => void;
+  clearWrongAnswers: () => void;
 
   // 講師モード用
   setTeacherMode: (enabled: boolean) => void;
@@ -52,6 +62,7 @@ const defaultState = {
   masteredTrickyWords: [] as string[],
   profileName: "Learner",
   profileAvatarId: "🌟",
+  wrongAnswers: [] as WrongAnswer[],
   teacherMode: false,
   selectedPhonemes: [] as string[],
 };
@@ -87,6 +98,16 @@ export const useProgressStore = create<ProgressState>()(
         set({ profileName: name, profileAvatarId: avatarId }),
 
       resetProgress: () => set({ ...defaultState }),
+
+      addWrongAnswer: (game: string, question: string, userAnswer: string) =>
+        set((state) => ({
+          wrongAnswers: [
+            ...state.wrongAnswers.slice(-99), // keep last 100 entries
+            { game, question, userAnswer, timestamp: Date.now() },
+          ],
+        })),
+
+      clearWrongAnswers: () => set({ wrongAnswers: [] }),
 
       // 講師モード用
       setTeacherMode: (enabled: boolean) => set({ teacherMode: enabled }),

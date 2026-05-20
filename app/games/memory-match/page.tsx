@@ -6,6 +6,7 @@ import Link from "next/link";
 import { phonemes, Phoneme } from "@/data/phonemes";
 import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
+import { getSoundEffects } from "@/utils/soundEffects";
 
 // ─── 型 ──────────────────────────────────────────────────────────────────────
 
@@ -135,8 +136,9 @@ function buildDeck(diff: Difficulty, available: Phoneme[]): CardData[] {
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function MemoryMatchPage() {
-  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
   const { play } = useAudio();
+  const soundEffects = getSoundEffects();
 
   const [phase, setPhase] = useState<Phase>("menu");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
@@ -213,6 +215,7 @@ export default function MemoryMatchPage() {
 
       if (cardA.pairKey === cardB.pairKey) {
         // マッチ！
+        soundEffects.playSuccess();
         setTimeout(() => {
           setMatched((prev) => [...prev, cardA.pairKey]);
           setFlipped([]);
@@ -220,6 +223,8 @@ export default function MemoryMatchPage() {
         }, 600);
       } else {
         // ミス → 裏返す
+        soundEffects.playError();
+        addWrongAnswer("memoryMatch", cardA.display, cardB.display);
         setTimeout(() => {
           setFlipped([]);
           setLocked(false);
