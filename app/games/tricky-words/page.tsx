@@ -41,6 +41,9 @@ export default function TrickyWordsGame() {
   const [selected, setSelected] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const [gameOver, setGameOver] = useState(false);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [comboText, setComboText] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
@@ -68,8 +71,19 @@ export default function TrickyWordsGame() {
       setScore((s) => s + 1);
       masterTrickyWord(question.word);
       soundEffects.playSuccess();
+      setCombo((prev) => {
+        const next = prev + 1;
+        if (next > maxCombo) setMaxCombo(next);
+        const milestones: Record<number, string> = { 3: "NICE! 🔥", 5: "GREAT! ⚡", 7: "AMAZING! 🌟", 10: "UNSTOPPABLE! 💥" };
+        if (milestones[next]) {
+          setComboText(milestones[next]);
+          setTimeout(() => setComboText(null), 1500);
+        }
+        return next;
+      });
     } else {
       setFeedback("wrong");
+      setCombo(0);
       soundEffects.playError();
       addWrongAnswer("trickyWords", question.word, choice);
       if (window.WiseXP) window.WiseXP.reportWrong({ question: question.word, correct: question.word, playerAnswer: choice });
@@ -96,6 +110,9 @@ export default function TrickyWordsGame() {
     setSelected(null);
     setFeedback(null);
     setGameOver(false);
+    setCombo(0);
+    setMaxCombo(0);
+    setComboText(null);
   };
 
   if (questions.length === 0) return (
@@ -116,6 +133,20 @@ export default function TrickyWordsGame() {
         </div>
       </header>
 
+      {comboText && (
+        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, pointerEvents: "none" }}>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0, 1.1, 1], opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 1.5, times: [0, 0.15, 0.25, 1] }}
+            className="text-5xl font-display text-white"
+            style={{ textShadow: "3px 3px 0 #111, 0 0 20px rgba(255,215,0,0.6)" }}
+          >
+            {comboText}
+          </motion.div>
+        </div>
+      )}
+
       <main className="max-w-xl mx-auto px-4 py-8">
         {gameOver ? (
           <motion.div
@@ -128,6 +159,16 @@ export default function TrickyWordsGame() {
               {score >= 7 ? "Amazing!" : score >= 4 ? "Good Job!" : "Keep Trying!"}
             </h2>
             <p className="text-2xl font-bold text-gray-600 mb-2">Score: {score} / {questions.length}</p>
+            {(() => {
+              const pct = Math.round((score / questions.length) * 100);
+              if (pct === 100) return (
+                <div className="mb-4 text-2xl font-bold px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-lg" style={{ textShadow: "0 0 10px rgba(255,215,0,0.8)" }}>PERFECT! 💎</div>
+              );
+              if (pct >= 80) return (
+                <div className="mb-4 text-lg font-bold px-6 py-3 rounded-2xl bg-orange-100 text-orange-700 border-2 border-orange-300">あと{questions.length - score}問でパーフェクト！もう一回？</div>
+              );
+              return null;
+            })()}
             <p className="text-gray-500 mb-8">Total mastered: {masteredTrickyWords.length} words!</p>
             <div className="flex gap-4 justify-center">
               <button onClick={restart}

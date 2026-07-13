@@ -58,6 +58,9 @@ export default function SegmentingGame() {
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [combo, setCombo] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [comboText, setComboText] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.WiseXP) window.WiseXP.init('phonics');
@@ -99,7 +102,18 @@ export default function SegmentingGame() {
     if (isCorrect) {
       setScore((s) => s + 1);
       soundEffects.playSuccess();
+      setCombo((prev) => {
+        const next = prev + 1;
+        if (next > maxCombo) setMaxCombo(next);
+        const milestones: Record<number, string> = { 3: "NICE! 🔥", 5: "GREAT! ⚡", 7: "AMAZING! 🌟", 10: "UNSTOPPABLE! 💥" };
+        if (milestones[next]) {
+          setComboText(milestones[next]);
+          setTimeout(() => setComboText(null), 1500);
+        }
+        return next;
+      });
     } else {
+      setCombo(0);
       soundEffects.playError();
       addWrongAnswer("segmenting", question.word, userAnswer.join(""));
       if (window.WiseXP) window.WiseXP.reportWrong({ question: question.word, correct: question.word, playerAnswer: userAnswer.join("") });
@@ -128,6 +142,9 @@ export default function SegmentingGame() {
     setFeedback(null);
     setGameOver(false);
     setChecked(false);
+    setCombo(0);
+    setMaxCombo(0);
+    setComboText(null);
   };
 
   if (questions.length === 0) return (
@@ -148,6 +165,20 @@ export default function SegmentingGame() {
         </div>
       </header>
 
+      {comboText && (
+        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, pointerEvents: "none" }}>
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0, 1.1, 1], opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 1.5, times: [0, 0.15, 0.25, 1] }}
+            className="text-5xl font-display text-white"
+            style={{ textShadow: "3px 3px 0 #111, 0 0 20px rgba(255,215,0,0.6)" }}
+          >
+            {comboText}
+          </motion.div>
+        </div>
+      )}
+
       <main className="max-w-xl mx-auto px-4 py-8">
         {gameOver ? (
           <motion.div className="text-center py-12" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
@@ -155,7 +186,17 @@ export default function SegmentingGame() {
             <h2 className="font-display text-4xl text-orange-700 mb-4">
               {score >= 7 ? "Amazing!" : score >= 4 ? "Good Job!" : "Keep Trying!"}
             </h2>
-            <p className="text-2xl font-bold text-gray-600 mb-8">Score: {score} / {questions.length}</p>
+            <p className="text-2xl font-bold text-gray-600 mb-4">Score: {score} / {questions.length}</p>
+            {(() => {
+              const pct = Math.round((score / questions.length) * 100);
+              if (pct === 100) return (
+                <div className="mb-6 text-2xl font-bold px-6 py-3 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-lg" style={{ textShadow: "0 0 10px rgba(255,215,0,0.8)" }}>PERFECT! 💎</div>
+              );
+              if (pct >= 80) return (
+                <div className="mb-6 text-lg font-bold px-6 py-3 rounded-2xl bg-orange-100 text-orange-700 border-2 border-orange-300">あと{questions.length - score}問でパーフェクト！もう一回？</div>
+              );
+              return null;
+            })()}
             <div className="flex gap-4 justify-center">
               <button onClick={restart}
                 className="px-8 py-4 bg-orange-500 text-white rounded-2xl font-display text-xl shadow-lg hover:bg-orange-600 active:scale-95 transition-all">

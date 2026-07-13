@@ -80,12 +80,26 @@ export const useProgressStore = create<ProgressState>()(
         })),
 
       updateGameScore: (game: keyof GameScores, score: number) =>
-        set((state) => ({
-          gameScores: {
-            ...state.gameScores,
-            [game]: Math.max(state.gameScores[game], score),
-          },
-        })),
+        set((state) => {
+          // → MoWISE portal へスコア送信 (WiseGame Bridge)
+          // 8ゲーム全ての結果がここを通るため、1箇所で全ゲーム対応
+          try {
+            const w = window as unknown as {
+              WiseGame?: { reportComplete: (d: Record<string, unknown>) => void };
+            };
+            w.WiseGame?.reportComplete({
+              score,
+              maxScore: Math.max(score, 100),
+              metadata: { subGame: game },
+            });
+          } catch {}
+          return {
+            gameScores: {
+              ...state.gameScores,
+              [game]: Math.max(state.gameScores[game], score),
+            },
+          };
+        }),
 
       masterTrickyWord: (word: string) =>
         set((state) => ({
