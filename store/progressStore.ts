@@ -79,7 +79,7 @@ export const useProgressStore = create<ProgressState>()(
             : [...state.completedPhonemes, id],
         })),
 
-      updateGameScore: (game: keyof GameScores, score: number) =>
+      updateGameScore: (game: keyof GameScores, score: number, wrongAnswers?: Array<{q:string;correct:string;chosen:string;tag:string}>) =>
         set((state) => {
           // → MoWISE portal へスコア送信 (WiseGame Bridge)
           // 8ゲーム全ての結果がここを通るため、1箇所で全ゲーム対応
@@ -90,7 +90,7 @@ export const useProgressStore = create<ProgressState>()(
             w.WiseGame?.reportComplete({
               score,
               maxScore: Math.max(score, 100),
-              metadata: { subGame: game },
+              metadata: { subGame: game, wrongAnswers: (wrongAnswers || []).slice(0, 20) },
             });
           } catch {}
           return {
