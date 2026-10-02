@@ -7,6 +7,7 @@ import { phonemes, Phoneme } from "@/data/phonemes";
 import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
 import { getSoundEffects } from "@/utils/soundEffects";
+import PortalLink from "@/components/PortalLink";
 
 declare global { interface Window { WiseXP?: any; } }
 
@@ -138,7 +139,7 @@ function buildDeck(diff: Difficulty, available: Phoneme[]): CardData[] {
 // ─── コンポーネント ───────────────────────────────────────────────────────────
 
 export default function MemoryMatchPage() {
-  const { completedPhonemes, updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
+  const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
   const soundEffects = getSoundEffects();
 
@@ -231,8 +232,8 @@ export default function MemoryMatchPage() {
       } else {
         // ミス → 裏返す
         soundEffects.playError();
-        addWrongAnswer("memoryMatch", cardA.display, cardB.display);
-        if (window.WiseXP) window.WiseXP.reportWrong({ question: cardA.display, correct: cardA.display, playerAnswer: cardB.display });
+        // カードの位置をおぼえていなかっただけで、音や文字を知らないとは限らないため、
+        // めくり間違いは「苦手問題」（wrongAnswers / WiseXP.reportWrong）には記録しない。
         setTimeout(() => {
           setFlipped([]);
           setLocked(false);
@@ -477,6 +478,7 @@ export default function MemoryMatchPage() {
                 </motion.button>
               </Link>
             </div>
+            <div className="mt-6 text-center"><PortalLink /></div>
           </motion.div>
         </div>
       )}

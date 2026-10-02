@@ -6,6 +6,7 @@ import { trickyWords } from "@/data/trickyWords";
 import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import { getSoundEffects } from "@/utils/soundEffects";
+import PortalLink from "@/components/PortalLink";
 
 declare global { interface Window { WiseXP?: any; } }
 
@@ -180,6 +181,7 @@ export default function TrickyWordsGame() {
                 Games
               </Link>
             </div>
+            <div className="mt-6 text-center"><PortalLink /></div>
           </motion.div>
         ) : (
           <>

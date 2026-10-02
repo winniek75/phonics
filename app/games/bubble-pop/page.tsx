@@ -7,6 +7,7 @@ import { phonemes, Phoneme } from "@/data/phonemes";
 import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
 import { getSoundEffects } from "@/utils/soundEffects";
+import PortalLink from "@/components/PortalLink";
 
 declare global { interface Window { WiseXP?: any; } }
 
@@ -431,6 +432,7 @@ export default function BubblePopPage() {
                 </motion.button>
               </Link>
             </div>
+            <div className="mt-6 text-center"><PortalLink /></div>
           </motion.div>
         </div>
       )}

@@ -1,40 +1,73 @@
 "use client";
-import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { phonemes, groupColors, getPhonemeById } from "@/data/phonemes";
 import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import LetterAnimation from "@/components/LetterAnimation/LetterAnimation";
+import PortalLink from "@/components/PortalLink";
+import { actionJa } from "@/data/phonemeJa";
 
 export default function PhonemePage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
   const phoneme = getPhonemeById(id);
-  const { play } = useAudio();
-  const { completedPhonemes, markPhonemeComplete } = useProgressStore();
+  const { play, speakWord } = useAudio();
+  const { completedPhonemes, phonemeActivity, recordPhonemeHeard, recordPhonemeWordHeard } = useProgressStore();
   const [showAnimation, setShowAnimation] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
+  const [audioProblem, setAudioProblem] = useState(false);
 
+  // 学習記録は「ページを開いた時間」ではなく、じっさいに音を再生できたときだけ付ける。
+  //  ① 音を聞いた（Hear Sound）  ② 例の単語を1つ以上聞いた  → ⭐
+  const isCompleted = !!phoneme && completedPhonemes.includes(phoneme.id);
+  const activity = phoneme ? phonemeActivity[phoneme.id] : undefined;
+  const heardSound = !!activity?.heard;
+  const heardWord = (activity?.words.length ?? 0) > 0;
+
+  // ⭐になった瞬間だけお祝いを出す（すでに⭐のページを開いたときは出さない）
+  const wasCompleted = useRef<{ id: string; done: boolean } | null>(null);
   useEffect(() => {
-    if (phoneme && !completedPhonemes.includes(phoneme.id)) {
-      const timer = setTimeout(() => {
-        markPhonemeComplete(phoneme.id);
-        setCelebrated(true);
-        setTimeout(() => setCelebrated(false), 2000);
-      }, 3000);
+    if (!phoneme) return;
+    const prev = wasCompleted.current;
+    if (prev && prev.id === phoneme.id && !prev.done && isCompleted) {
+      setCelebrated(true);
+      const timer = setTimeout(() => setCelebrated(false), 2500);
+      wasCompleted.current = { id: phoneme.id, done: true };
       return () => clearTimeout(timer);
     }
-  }, [phoneme?.id]);
+    wasCompleted.current = { id: phoneme.id, done: isCompleted };
+  }, [phoneme?.id, isCompleted]);
+
+  const hearSound = () => {
+    if (!phoneme) return;
+    const pid = phoneme.id;
+    play(phoneme.audioFile, {
+      // 録音が無く読み上げで代用するときは、音のあとに例の単語も言う（例: "sss. sun"）
+      keyword: phoneme.exampleWords[0],
+      onPlayed: () => { setAudioProblem(false); recordPhonemeHeard(pid); },
+      onFailed: () => setAudioProblem(true),
+    });
+  };
+
+  const hearWord = (word: string) => {
+    if (!phoneme) return;
+    const pid = phoneme.id;
+    play(phoneme.wordAudioFiles[word] || `/audio/words/${word}.mp3`, {
+      onPlayed: () => { setAudioProblem(false); recordPhonemeWordHeard(pid, word); },
+      onFailed: () => setAudioProblem(true),
+    });
+  };
 
   if (!phoneme) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-2xl font-bold text-gray-600">Phoneme not found</p>
-          <Link href="/" className="mt-4 inline-block text-green-600 font-bold">← Back to Garden</Link>
+          <p className="text-2xl font-bold text-gray-600">この おとは みつかりません</p>
+          <p className="text-sm text-gray-400 mt-1">Phoneme not found</p>
+          <Link href="/" className="mt-4 inline-block text-green-600 font-bold">← おにわに もどる</Link>
         </div>
       </div>
     );
@@ -45,7 +78,6 @@ export default function PhonemePage() {
   const currentIndex = allPhonemes.findIndex((p) => p.id === id);
   const prevPhoneme = currentIndex > 0 ? allPhonemes[currentIndex - 1] : null;
   const nextPhoneme = currentIndex < allPhonemes.length - 1 ? allPhonemes[currentIndex + 1] : null;
-  const isCompleted = completedPhonemes.includes(phoneme.id);
 
   return (
     <div className="min-h-screen" style={{ background: `linear-gradient(135deg, ${color}22 0%, #f0fdf4 100%)` }}>
@@ -56,9 +88,9 @@ export default function PhonemePage() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-yellow-400 text-yellow-900 font-display px-6 py-3 rounded-full text-xl shadow-xl"
+            className="fixed top-4 inset-x-0 mx-auto w-fit z-50 bg-yellow-400 text-yellow-900 font-display px-6 py-3 rounded-full text-xl shadow-xl whitespace-nowrap"
           >
-            🌟 Phoneme learned! Great job!
+            🌟 よく できました！ Great job!
           </motion.div>
         )}
       </AnimatePresence>
@@ -67,14 +99,14 @@ export default function PhonemePage() {
       <header className="bg-white/80 backdrop-blur-sm shadow-sm px-4 py-3 flex items-center justify-between sticky top-0 z-10">
         <Link href="/" className="flex items-center gap-2 text-green-700 font-bold hover:text-green-900 transition-colors">
           <span className="text-xl">←</span>
-          <span className="hidden sm:inline">Back to Garden</span>
+          <span>おにわ</span>
         </Link>
         <div className="flex items-center gap-2">
           <span
             className="px-3 py-1 rounded-full text-white text-sm font-bold"
             style={{ backgroundColor: color }}
           >
-            Group {phoneme.group}
+            グループ {phoneme.group}
           </span>
           {isCompleted && (
             <span className="text-yellow-500 text-xl">⭐</span>
@@ -91,7 +123,8 @@ export default function PhonemePage() {
           transition={{ type: "spring", stiffness: 200 }}
         >
           <motion.button
-            onClick={() => play(phoneme.audioFile)}
+            onClick={hearSound}
+            aria-label="おとを きく"
             className="text-9xl font-display cursor-pointer inline-block select-none"
             style={{ color }}
             whileHover={{ scale: 1.1 }}
@@ -99,30 +132,54 @@ export default function PhonemePage() {
           >
             {phoneme.letter}
           </motion.button>
-          <p className="text-2xl text-gray-500 font-semibold mt-2">{phoneme.sound} sound</p>
+          <p className="text-2xl text-gray-500 font-semibold mt-2">{phoneme.sound} の おと</p>
         </motion.div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 justify-center mb-8">
+        <div className="flex gap-3 justify-center mb-4">
           <motion.button
-            onClick={() => play(phoneme.audioFile)}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold text-lg shadow-lg"
+            onClick={hearSound}
+            className="flex flex-col items-center px-6 py-3 rounded-2xl text-white font-bold text-lg shadow-lg leading-tight"
             style={{ backgroundColor: color }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            🔊 Hear Sound
+            <span>🔊 おとを きく</span>
+            <span className="text-xs font-semibold opacity-90">Hear Sound</span>
           </motion.button>
           <motion.button
             onClick={() => setShowAnimation(!showAnimation)}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-lg shadow-lg bg-white border-2"
+            className="flex flex-col items-center px-6 py-3 rounded-2xl font-bold text-lg shadow-lg bg-white border-2 leading-tight"
             style={{ borderColor: color, color }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            ✏️ Write It
+            <span>✏️ かきかた</span>
+            <span className="text-xs font-semibold opacity-80">Write It</span>
           </motion.button>
         </div>
+
+        {/* やることリスト：じっさいに聞いたら ✅ になる */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-8 text-sm font-bold" data-testid="steps">
+          <span className={`px-3 py-1 rounded-full ${heardSound ? "bg-green-100 text-green-700" : "bg-white text-gray-500 border border-gray-200"}`}>
+            {heardSound ? "✅" : "①"} おとを きく
+          </span>
+          <span className={`px-3 py-1 rounded-full ${heardWord ? "bg-green-100 text-green-700" : "bg-white text-gray-500 border border-gray-200"}`}>
+            {heardWord ? "✅" : "②"} ことばを きく
+          </span>
+          <span className={`px-3 py-1 rounded-full ${isCompleted ? "bg-yellow-100 text-yellow-700" : "bg-white text-gray-400 border border-gray-200"}`}>
+            {isCompleted ? "⭐ できた！" : "→ ⭐"}
+          </span>
+        </div>
+
+        {audioProblem && (
+          <p className="text-center text-sm font-bold text-orange-700 bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 mb-8" role="status">
+            🔈 おとが でないみたい。おうちの ひとに きいてね。
+            <span className="block text-xs font-semibold text-orange-600 mt-1">
+              （保護者の方へ：端末の音量・マナーモード、ブラウザの読み上げ機能をご確認ください）
+            </span>
+          </p>
+        )}
 
         {/* Letter Animation */}
         <AnimatePresence>
@@ -152,12 +209,13 @@ export default function PhonemePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="font-display text-2xl mb-4 text-gray-700">📚 Example Words</h2>
+          <h2 className="font-display text-2xl mb-1 text-gray-700">📚 ことば <span className="text-base text-gray-400">Example Words</span></h2>
+          <p className="text-sm font-semibold text-gray-500 mb-3">おして きいてみよう。まねして いってみよう。</p>
           <div className="grid grid-cols-2 gap-3">
             {phoneme.exampleWords.map((word, i) => (
               <motion.button
                 key={word}
-                onClick={() => play(phoneme.wordAudioFiles[word] || `/audio/words/${word}.mp3`)}
+                onClick={() => hearWord(word)}
                 className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-md font-bold text-lg border-2 hover:shadow-lg transition-all"
                 style={{ borderColor: color, color: "#374151" }}
                 whileHover={{ scale: 1.03 }}
@@ -166,7 +224,7 @@ export default function PhonemePage() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.3 + i * 0.1 }}
               >
-                <span className="text-2xl">🔊</span>
+                <span className="text-2xl">{activity?.words.includes(word) ? "✅" : "🔊"}</span>
                 <span className="font-display text-xl">{word}</span>
               </motion.button>
             ))}
@@ -180,13 +238,16 @@ export default function PhonemePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
-          <h2 className="font-display text-2xl mb-4 text-gray-700">📖 Story</h2>
-          <div
-            className="p-5 rounded-3xl text-white text-lg font-semibold leading-relaxed shadow-md"
+          <h2 className="font-display text-2xl mb-1 text-gray-700">📖 おはなし <span className="text-base text-gray-400">Story</span></h2>
+          <p className="text-sm font-semibold text-gray-500 mb-3">えいごの おはなしだよ。おすと よんでくれるよ。</p>
+          <button
+            type="button"
+            onClick={() => speakWord(phoneme.storyText, { rate: 0.8, onFailed: () => setAudioProblem(true) })}
+            className="w-full text-left p-5 rounded-3xl text-white text-lg font-semibold leading-relaxed shadow-md"
             style={{ backgroundColor: color }}
           >
-            {phoneme.storyText}
-          </div>
+            <span className="mr-2">🔊</span>{phoneme.storyText}
+          </button>
         </motion.section>
 
         {/* Action */}
@@ -196,11 +257,17 @@ export default function PhonemePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <h2 className="font-display text-2xl mb-4 text-gray-700">🤸 Action</h2>
+          <h2 className="font-display text-2xl mb-1 text-gray-700">🤸 うごき <span className="text-base text-gray-400">Action</span></h2>
+          <p className="text-sm font-semibold text-gray-500 mb-3">おとを いいながら からだを うごかそう。</p>
           <div className="flex items-center gap-4 p-5 bg-white rounded-3xl shadow-md border-2"
             style={{ borderColor: color }}>
             <span className="text-5xl">{phoneme.actionEmoji}</span>
-            <p className="text-lg font-semibold text-gray-700">{phoneme.actionDescription}</p>
+            <div>
+              {actionJa[phoneme.id] && (
+                <p className="text-lg font-bold text-gray-700">{actionJa[phoneme.id]}</p>
+              )}
+              <p className="text-sm font-semibold text-gray-400">{phoneme.actionDescription}</p>
+            </div>
           </div>
         </motion.section>
 
@@ -211,7 +278,7 @@ export default function PhonemePage() {
               href={`/phoneme/${prevPhoneme.id}`}
               className="flex items-center gap-2 px-5 py-3 bg-white rounded-2xl shadow-md font-bold text-gray-600 hover:shadow-lg transition-all"
             >
-              ← {prevPhoneme.letter}
+              ← まえ {prevPhoneme.letter}
             </Link>
           ) : <div />}
 
@@ -221,9 +288,20 @@ export default function PhonemePage() {
               className="flex items-center gap-2 px-5 py-3 text-white rounded-2xl shadow-md font-bold hover:shadow-lg transition-all"
               style={{ backgroundColor: color }}
             >
-              {nextPhoneme.letter} →
+              つぎ {nextPhoneme.letter} →
             </Link>
           )}
+        </div>
+
+        {/* この おとで あそぶ */}
+        <div className="mt-8 text-center">
+          <a
+            href={`/games/letter-match?group=${phoneme.group}`}
+            className="inline-block px-5 py-3 bg-white rounded-2xl shadow-md font-bold text-blue-600 border-2 border-blue-200"
+          >
+            🔤 グループ {phoneme.group} の おとあてゲーム
+          </a>
+          <div className="mt-4"><PortalLink /></div>
         </div>
       </main>
 
@@ -231,15 +309,15 @@ export default function PhonemePage() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-green-200 flex justify-around items-center py-2 px-4 z-20">
         <Link href="/" className="flex flex-col items-center gap-1 text-gray-500 hover:text-green-700 transition-colors">
           <span className="text-2xl">🏡</span>
-          <span className="text-xs font-bold">Home</span>
+          <span className="text-xs font-bold">おにわ</span>
         </Link>
         <Link href="/games" className="flex flex-col items-center gap-1 text-gray-500 hover:text-purple-600 transition-colors">
           <span className="text-2xl">🎮</span>
-          <span className="text-xs font-bold">Games</span>
+          <span className="text-xs font-bold">ゲーム</span>
         </Link>
         <Link href="/progress" className="flex flex-col items-center gap-1 text-gray-500 hover:text-yellow-600 transition-colors">
           <span className="text-2xl">⭐</span>
-          <span className="text-xs font-bold">Progress</span>
+          <span className="text-xs font-bold">きろく</span>
         </Link>
       </nav>
     </div>

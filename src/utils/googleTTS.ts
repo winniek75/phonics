@@ -51,6 +51,8 @@ export function speakText(
     rate?: number;
     pitch?: number;
     volume?: number;
+    /** 実際に音が出はじめたときに呼ばれる */
+    onStart?: () => void;
   } = {}
 ): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -67,7 +69,18 @@ export function speakText(
     utterance.pitch = options.pitch || 1;
     utterance.volume = options.volume || 1;
 
-    utterance.onend = () => resolve();
+    let started = false;
+    const markStarted = () => {
+      if (started) return;
+      started = true;
+      options.onStart?.();
+    };
+    utterance.onstart = markStarted;
+    utterance.onend = () => {
+      // onstart を出さないブラウザでも、最後まで読めたら「再生できた」とみなす
+      markStarted();
+      resolve();
+    };
     utterance.onerror = (error) => reject(error);
 
     // 実行前に既存の音声をクリア
