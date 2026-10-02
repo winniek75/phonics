@@ -1,6 +1,8 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import PortalLink from "@/components/PortalLink";
 import { phonemes, groupColors, getPhonemesByGroup } from "@/data/phonemes";
 import { useProgressStore } from "@/store/progressStore";
 
@@ -146,6 +148,23 @@ export default function GardenHome() {
   const { completedPhonemes, profileName, profileAvatarId } = useProgressStore();
   const progress = (completedPhonemes.length / phonemes.length) * 100;
 
+  // ディープリンク:  /?phoneme=s → その音のページへ   /?group=2 → グループ2の音をすぐ選べるパネルを表示
+  const [focusGroup, setFocusGroup] = useState<number | null>(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ph = params.get("phoneme");
+    if (ph) {
+      const target = phonemes.find((p) => p.id === ph) || phonemes.find((p) => p.id.startsWith(ph + "_"));
+      if (target) {
+        window.location.replace(`/phoneme/${target.id}`);
+        return;
+      }
+    }
+    const g = parseInt(params.get("group") || "", 10);
+    if (g >= 1 && g <= 7) setFocusGroup(g);
+  }, []);
+  const focusPhonemes = focusGroup ? getPhonemesByGroup(focusGroup) : [];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-green-100 to-green-300">
       {/* Header */}
@@ -164,7 +183,7 @@ export default function GardenHome() {
                 animate={{ width: `${progress}%` }}
               />
             </div>
-            <span className="text-sm font-bold text-green-700">{completedPhonemes.length}/42</span>
+            <span className="text-sm font-bold text-green-700">{completedPhonemes.length}/{phonemes.length}</span>
           </div>
           <div className="flex items-center gap-1 bg-yellow-50 rounded-full px-3 py-1 border border-yellow-200">
             <span className="text-xl">{profileAvatarId}</span>
@@ -172,6 +191,45 @@ export default function GardenHome() {
           </div>
         </div>
       </header>
+
+      {/* あそびかた */}
+      <p className="text-center text-sm sm:text-base font-bold text-green-800 px-4 pt-3">
+        はなびらの もじを おして、おとを きいてみよう 🔊
+        <span className="block text-xs font-semibold text-green-700/80">
+          おとと ことばを きくと、はなびらに いろが つくよ（{completedPhonemes.length}/{phonemes.length}）
+        </span>
+      </p>
+
+      {/* きょうの おと（?group= で指定されたグループ） */}
+      {focusGroup && (
+        <section className="mx-4 mt-3 p-4 bg-white rounded-3xl shadow-md border-2" style={{ borderColor: groupColors[focusGroup] }} data-testid="focus-group">
+          <h2 className="font-display text-xl mb-3" style={{ color: groupColors[focusGroup] }}>
+            🌼 きょうの おと（グループ {focusGroup}）
+          </h2>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {focusPhonemes.map((p) => (
+              <Link
+                key={p.id}
+                href={`/phoneme/${p.id}`}
+                className="min-w-[3.5rem] text-center px-4 py-3 rounded-2xl font-display text-2xl shadow"
+                style={
+                  completedPhonemes.includes(p.id)
+                    ? { backgroundColor: groupColors[focusGroup], color: "white" }
+                    : { backgroundColor: "#f3f4f6", color: "#374151", border: `2px solid ${groupColors[focusGroup]}` }
+                }
+              >
+                {p.letter}{completedPhonemes.includes(p.id) ? " ⭐" : ""}
+              </Link>
+            ))}
+          </div>
+          <a
+            href={`/games/letter-match?group=${focusGroup}`}
+            className="inline-block text-sm font-bold text-blue-600 underline underline-offset-4"
+          >
+            🔤 この グループの おとあてゲームを する
+          </a>
+        </section>
+      )}
 
       {/* Garden SVG */}
       <div className="relative w-full" style={{ paddingBottom: "85%" }}>
@@ -232,19 +290,23 @@ export default function GardenHome() {
         </svg>
       </div>
 
+      <div className="text-center py-4">
+        <PortalLink />
+      </div>
+
       {/* Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-green-200 flex justify-around items-center py-2 px-4 z-20">
         <Link href="/" className="flex flex-col items-center gap-1 text-green-700">
           <span className="text-2xl">🏡</span>
-          <span className="text-xs font-bold">Home</span>
+          <span className="text-xs font-bold">おにわ</span>
         </Link>
         <Link href="/games" className="flex flex-col items-center gap-1 text-gray-500 hover:text-purple-600 transition-colors">
           <span className="text-2xl">🎮</span>
-          <span className="text-xs font-bold">Games</span>
+          <span className="text-xs font-bold">ゲーム</span>
         </Link>
         <Link href="/progress" className="flex flex-col items-center gap-1 text-gray-500 hover:text-yellow-600 transition-colors">
           <span className="text-2xl">⭐</span>
-          <span className="text-xs font-bold">Progress</span>
+          <span className="text-xs font-bold">きろく</span>
         </Link>
       </nav>
 

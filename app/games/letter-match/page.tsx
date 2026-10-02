@@ -6,6 +6,7 @@ import { phonemes, groupColors } from "@/data/phonemes";
 import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import { getSoundEffects } from "@/utils/soundEffects";
+import PortalLink from "@/components/PortalLink";
 
 declare global { interface Window { WiseXP?: any; } }
 
@@ -200,6 +201,7 @@ export default function LetterMatchGame() {
                 Games
               </Link>
             </div>
+            <div className="mt-6 text-center"><PortalLink /></div>
           </motion.div>
         ) : (
           <>

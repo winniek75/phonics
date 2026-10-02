@@ -305,15 +305,15 @@ export default function ProgressPage() {
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-green-200 flex justify-around items-center py-2 px-4 z-20">
         <Link href="/" className="flex flex-col items-center gap-1 text-gray-500 hover:text-green-700">
           <span className="text-2xl">🏡</span>
-          <span className="text-xs font-bold">Home</span>
+          <span className="text-xs font-bold">おにわ</span>
         </Link>
         <Link href="/games" className="flex flex-col items-center gap-1 text-gray-500 hover:text-purple-600">
           <span className="text-2xl">🎮</span>
-          <span className="text-xs font-bold">Games</span>
+          <span className="text-xs font-bold">ゲーム</span>
         </Link>
         <Link href="/progress" className="flex flex-col items-center gap-1 text-yellow-600">
           <span className="text-2xl">⭐</span>
-          <span className="text-xs font-bold">Progress</span>
+          <span className="text-xs font-bold">きろく</span>
         </Link>
       </nav>
     </div>

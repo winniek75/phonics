@@ -117,3 +117,26 @@ public/
 Jolly Phonicsのキャラクター・音声・イラストは著作権保護のため、
 本アプリは完全にオリジナルコンテンツで実装されています。
 フォニックスの教育メソッド自体はオープンドメインです。
+
+## 音声ファイルについて（2026-10）
+
+- 録音ファイルは `public/audio/phonemes/<id>.mp3`・`public/audio/words/<word>.mp3`・`public/audio/tricky/<word>.mp3` に置きます（ファイル名は大文字小文字も一致させる）。
+- `npm run check-audio` で、参照されている全音声が実在するかを一覧表示します。`npm run build` の前にも自動実行され、実在するファイル一覧が `data/audioManifest.json` に書き出されます。
+- ファイルが無い音は、ブラウザの読み上げ機能（speechSynthesis）で代用します（`data/phonemeSpeech.ts`）。音素単独の読み上げは正確ではないため、正式には録音ファイルを用意してください。置けば自動的に録音が使われます。
+
+## 学習記録（⭐）の条件
+
+音のページを開いただけでは⭐になりません。「🔊 おとを きく」で音を再生し、例の単語を1つ以上聞いたときに⭐（学習済み）になります。
+
+## ディープリンク
+
+| URL | 動作 |
+| --- | --- |
+| `/phoneme/s` または `/?phoneme=s` | その音のページを直接開く（id: `s` `a` `ck` `ai` `oo_short` `th_voiced` など） |
+| `/?group=2` | ホームに「きょうの おと（グループ2）」を表示 |
+| `/games/letter-match?group=1` | グループ1の音だけでそのゲームを開始 |
+| `/games/bubble-pop?phonemes=s,a,t` | 指定した音だけでそのゲームを開始 |
+| `/games?game=blending&group=1` | 同上（ゲームIDを `game` で指定） |
+
+ゲームID: `blending` `segmenting` `tricky-words` `letter-match` `bubble-pop` `whack-a-mole` `word-fishing` `memory-match`
+（`tricky-words` は音の指定に関係なく全 Tricky Words から出題）

@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "check-audio": "node scripts/check-audio.mjs --list",
+    "prebuild": "node scripts/check-audio.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

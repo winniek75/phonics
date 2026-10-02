@@ -1,9 +1,10 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import PortalLink from "@/components/PortalLink";
 import { phonemes, groupColors } from "@/data/phonemes";
-import { useProgressStore } from "@/store/progressStore";
+import { useProgressStore, parsePhonemeParams } from "@/store/progressStore";
 
 const games = [
   // ── 既存 ──────────────────────────────────────────────────────────────
@@ -12,6 +13,7 @@ const games = [
     title: "Blending",
     emoji: "🎵",
     description: "Listen to sounds and blend them into words!",
+    descriptionJa: "おとを つなげて、ことばを えらぼう",
     color: "#EF4444",
     bg: "from-red-400 to-red-600",
   },
@@ -20,6 +22,7 @@ const games = [
     title: "Segmenting",
     emoji: "🧩",
     description: "Break words apart into their sounds!",
+    descriptionJa: "ことばを きいて、もじを ならべよう",
     color: "#F97316",
     bg: "from-orange-400 to-orange-600",
   },
@@ -28,6 +31,7 @@ const games = [
     title: "Tricky Words",
     emoji: "🌟",
     description: "Read tricky words that can't be sounded out!",
+    descriptionJa: "きいた ことばを えらぼう（とくべつな よみかたの ことば）",
     color: "#22C55E",
     bg: "from-green-400 to-green-600",
   },
@@ -36,6 +40,7 @@ const games = [
     title: "Letter Match",
     emoji: "🔤",
     description: "Match sounds to their letters!",
+    descriptionJa: "おとを きいて、もじを えらぼう",
     color: "#3B82F6",
     bg: "from-blue-400 to-blue-600",
   },
@@ -45,6 +50,7 @@ const games = [
     title: "Bubble Pop",
     emoji: "🫧",
     description: "Pop the bubbles with the right letter — fast!",
+    descriptionJa: "おとと おなじ もじの あわを わろう（はやさ あり）",
     color: "#06B6D4",
     bg: "from-cyan-400 to-sky-600",
   },
@@ -53,6 +59,7 @@ const games = [
     title: "Whack-a-Mole",
     emoji: "🐾",
     description: "Whack the mole showing the right sound!",
+    descriptionJa: "おとと おなじ もじの もぐらを たたこう（はやさ あり）",
     color: "#84CC16",
     bg: "from-lime-400 to-green-600",
   },
@@ -61,6 +68,7 @@ const games = [
     title: "Word Fishing",
     emoji: "🎣",
     description: "Cast your line and catch the right word fish!",
+    descriptionJa: "おとが はいった ことばの さかなを つろう",
     color: "#0EA5E9",
     bg: "from-sky-400 to-blue-700",
   },
@@ -69,6 +77,7 @@ const games = [
     title: "Memory Match",
     emoji: "🃏",
     description: "Flip cards to match letters with their sounds!",
+    descriptionJa: "カードを めくって、おなじ おとを そろえよう",
     color: "#A855F7",
     bg: "from-purple-400 to-violet-700",
   },
@@ -80,6 +89,26 @@ export default function GamesPage() {
   const { selectedPhonemes, setSelectedPhonemes } = useProgressStore();
   const [tempSelectedPhonemes, setTempSelectedPhonemes] = useState<string[]>(selectedPhonemes || []);
 
+  // ディープリンク:
+  //   /games?game=letter-match&group=1      → 音を指定してそのゲームを直接開く
+  //   /games?game=letter-match              → そのゲームの文字選択画面を開く
+  //   /games?group=1  /games?phonemes=s,a,t → ゲームを選んだあとの文字選択に指定の音を入れておく
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = parsePhonemeParams(window.location.search);
+    const game = params.get("game");
+    const validGame = game && games.some((g) => g.id === game) ? game : null;
+    if (fromUrl) setTempSelectedPhonemes(fromUrl);
+    if (validGame && fromUrl) {
+      setSelectedPhonemes(fromUrl);
+      window.location.replace(`/games/${validGame}`);
+    } else if (validGame) {
+      setSelectedGame(validGame);
+      setShowCharacterSelection(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleGameClick = (gameId: string) => {
     setSelectedGame(gameId);
     setShowCharacterSelection(true);
@@ -87,7 +116,7 @@ export default function GamesPage() {
 
   const handleStartGame = () => {
     if (tempSelectedPhonemes.length === 0) {
-      alert("少なくとも1つの文字を選択してください！");
+      alert("もじを 1つ いじょう えらんでね！");
       return;
     }
     setSelectedPhonemes(tempSelectedPhonemes);
@@ -134,18 +163,19 @@ export default function GamesPage() {
             onClick={() => setShowCharacterSelection(false)}
             className="text-purple-700 font-bold hover:text-purple-900 flex items-center gap-1"
           >
-            ← <span className="hidden sm:inline">Back</span>
+            ← <span>もどる</span>
           </button>
-          <h1 className="font-display text-2xl text-purple-700">文字を選択</h1>
+          <h1 className="font-display text-2xl text-purple-700">もじを えらぶ</h1>
         </header>
 
         <main className="max-w-4xl mx-auto px-4 py-6 pb-32">
           <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
             <h2 className="font-display text-2xl mb-4 text-purple-800">
-              練習する文字を選んでください
+              れんしゅうする もじを えらんでね
             </h2>
             <p className="text-gray-600 mb-4">
-              選択された文字: {tempSelectedPhonemes.length} / {phonemes.length}
+              えらんだ もじ: {tempSelectedPhonemes.length} / {phonemes.length}
+              <span className="block text-xs text-gray-400">（先生・保護者の方へ：今日練習する音だけを選べます。Group ボタンでまとめて選択）</span>
             </p>
 
             {/* Quick selection buttons */}
@@ -154,13 +184,13 @@ export default function GamesPage() {
                 onClick={selectAll}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600"
               >
-                すべて選択
+                ぜんぶ えらぶ
               </button>
               <button
                 onClick={selectNone}
                 className="px-4 py-2 bg-gray-500 text-white rounded-lg font-bold hover:bg-gray-600"
               >
-                選択解除
+                ぜんぶ はずす
               </button>
               {[1, 2, 3, 4, 5, 6, 7].map(group => (
                 <button
@@ -218,7 +248,7 @@ export default function GamesPage() {
             onClick={handleStartGame}
             className="w-full py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-2xl font-display text-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
           >
-            ゲームを開始！ 🎮
+            ゲームを はじめる！ 🎮
           </button>
         </main>
       </div>
@@ -233,9 +263,9 @@ export default function GamesPage() {
           href="/"
           className="text-green-700 font-bold hover:text-green-900 flex items-center gap-1"
         >
-          ← <span className="hidden sm:inline">Garden</span>
+          ← <span>おにわ</span>
         </Link>
-        <h1 className="font-display text-2xl text-purple-700">🎮 Games</h1>
+        <h1 className="font-display text-2xl text-purple-700">🎮 ゲーム</h1>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 pb-24">
@@ -244,7 +274,8 @@ export default function GamesPage() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          Choose a Game!
+          ゲームを えらぼう！
+          <span className="block text-lg text-purple-500 mt-1">Choose a Game!</span>
         </motion.h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -263,16 +294,23 @@ export default function GamesPage() {
                 >
                   <div className="text-6xl mb-4">{game.emoji}</div>
                   <h3 className="font-display text-3xl mb-2">{game.title}</h3>
-                  <p className="text-white/90 font-semibold text-lg mb-6">
+                  <p className="text-white font-bold text-lg mb-1">
+                    {game.descriptionJa}
+                  </p>
+                  <p className="text-white/80 font-semibold text-sm mb-6">
                     {game.description}
                   </p>
                   <div className="inline-flex items-center gap-2 bg-white/25 rounded-2xl px-5 py-3 font-bold text-lg">
-                    ▶ Play!
+                    ▶ あそぶ
                   </div>
                 </motion.div>
               </button>
             </motion.div>
           ))}
+        </div>
+
+        <div className="text-center mt-8">
+          <PortalLink />
         </div>
       </main>
 
@@ -283,21 +321,21 @@ export default function GamesPage() {
           className="flex flex-col items-center gap-1 text-gray-500 hover:text-green-700"
         >
           <span className="text-2xl">🏡</span>
-          <span className="text-xs font-bold">Home</span>
+          <span className="text-xs font-bold">おにわ</span>
         </Link>
         <Link
           href="/games"
           className="flex flex-col items-center gap-1 text-purple-600"
         >
           <span className="text-2xl">🎮</span>
-          <span className="text-xs font-bold">Games</span>
+          <span className="text-xs font-bold">ゲーム</span>
         </Link>
         <Link
           href="/progress"
           className="flex flex-col items-center gap-1 text-gray-500 hover:text-yellow-600"
         >
           <span className="text-2xl">⭐</span>
-          <span className="text-xs font-bold">Progress</span>
+          <span className="text-xs font-bold">きろく</span>
         </Link>
       </nav>
     </div>
