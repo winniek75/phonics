@@ -14,7 +14,7 @@ export default function PhonemePage() {
   const params = useParams();
   const id = params.id as string;
   const phoneme = getPhonemeById(id);
-  const { play, speakWord } = useAudio();
+  const { play, playPhoneme, speakWord } = useAudio();
   const { completedPhonemes, phonemeActivity, recordPhonemeHeard, recordPhonemeWordHeard } = useProgressStore();
   const [showAnimation, setShowAnimation] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
@@ -44,9 +44,8 @@ export default function PhonemePage() {
   const hearSound = () => {
     if (!phoneme) return;
     const pid = phoneme.id;
-    play(phoneme.audioFile, {
-      // 録音が無く読み上げで代用するときは、音のあとに例の単語も言う（例: "sss. sun"）
-      keyword: phoneme.exampleWords[0],
+    // 音素はTTS代用しない（録音ファイルのみ）
+    playPhoneme(phoneme.audioFile, {
       onPlayed: () => { setAudioProblem(false); recordPhonemeHeard(pid); },
       onFailed: () => setAudioProblem(true),
     });
@@ -174,9 +173,9 @@ export default function PhonemePage() {
 
         {audioProblem && (
           <p className="text-center text-sm font-bold text-orange-700 bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 mb-8" role="status">
-            🔈 おとが でないみたい。おうちの ひとに きいてね。
+            🔈 おとの ファイルが まだ ないよ。せんせいに きいてね。
             <span className="block text-xs font-semibold text-orange-600 mt-1">
-              （保護者の方へ：端末の音量・マナーモード、ブラウザの読み上げ機能をご確認ください）
+              （先生へ：音素の録音ファイルを public/audio/phonemes/ に配置してください）
             </span>
           </p>
         )}

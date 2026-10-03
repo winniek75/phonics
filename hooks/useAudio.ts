@@ -116,6 +116,40 @@ export function useAudio() {
     });
   }, [stop, speak]);
 
+  /**
+   * 音素の音を再生する（録音ファイル専用・TTS 代用なし）。
+   * TTSは a→"ah", t→"tuh" のように不正確な音を出すため、
+   * 音素部分は先生が確認した録音を優先する。
+   * 録音がなければ onFailed を呼ぶ（「音声ファイルが必要です」表示用）。
+   */
+  const playPhoneme = useCallback((path: string, options: AudioOptions = {}) => {
+    if (typeof window === "undefined") return;
+    stop();
+
+    const hasFile = existingFiles.has(path) && !brokenFiles.has(path);
+    if (!hasFile) {
+      options.onFailed?.();
+      return;
+    }
+
+    const audio = new Audio(path);
+    currentRef.current = audio;
+    let handled = false;
+    const onError = () => {
+      if (handled) return;
+      handled = true;
+      brokenFiles.add(path);
+      if (currentRef.current === audio) currentRef.current = null;
+      options.onFailed?.();
+    };
+    audio.addEventListener("playing", () => options.onPlayed?.(), { once: true });
+    audio.addEventListener("error", onError);
+    audio.play().catch((err: Error) => {
+      if (err?.name === "NotAllowedError" || err?.name === "AbortError") return;
+      onError();
+    });
+  }, [stop]);
+
   // 単語・文の読み上げ（録音ファイルを使わない）
   const speakWord = useCallback((word: string, options: AudioOptions = {}) => {
     if (typeof window === "undefined") return;
@@ -123,5 +157,5 @@ export function useAudio() {
     speak(word, options, 0.9);
   }, [stop, speak]);
 
-  return { play, stop, speakWord };
+  return { play, playPhoneme, stop, speakWord };
 }
