@@ -122,13 +122,17 @@ export default function BubblePopPage() {
       if (needed <= 0) return current;
 
       const result = [...current];
-      // 正解泡が 1 個以上含まれるよう保証
-      const hasCorrect = result.some((b) => b.phoneme.id === targetId);
+      // 正解泡が 2 個以上含まれるよう保証
+      const correctCount = result.filter((b) => b.phoneme.id === targetId).length;
+      const minCorrect = 2;
+      const correctNeeded = Math.max(0, minCorrect - correctCount);
       for (let i = 0; i < needed; i++) {
-        const forceCorrect = !hasCorrect && i === 0;
+        const forceCorrect = i < correctNeeded;
         const ph = forceCorrect
           ? pool.find((p) => p.id === targetId)!
-          : pickRandom(pool);
+          : Math.random() < 0.3
+            ? pool.find((p) => p.id === targetId)!
+            : pickRandom(pool);
         result.push(spawnBubble(ph));
       }
       return result;
@@ -289,11 +293,8 @@ export default function BubblePopPage() {
                   exit={{ x: -20, opacity: 0 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <span className="text-gray-500 text-base">Pop:</span>
-                  <span className="font-display text-5xl text-blue-700">
-                    {target.letter}
-                  </span>
-                  <span className="text-2xl">🔊</span>
+                  <span className="text-4xl">🔊</span>
+                  <span className="text-gray-500 text-base font-display">Tap to hear!</span>
                 </motion.button>
               )}
             </AnimatePresence>
