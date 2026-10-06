@@ -231,7 +231,7 @@ export default function SegmentingGame() {
                     onClick={() => play(question.audioFile)}
                     className="px-8 py-4 bg-orange-500 text-white rounded-2xl font-display text-2xl shadow-lg hover:bg-orange-600 transition-colors"
                   >
-                    🔊 {question.word}
+                    🔊 Tap to hear!
                   </button>
                   <p className="mt-3 text-gray-600 font-bold">Break it into sounds!</p>
                 </div>
