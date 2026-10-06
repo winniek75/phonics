@@ -8,6 +8,8 @@ import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import LetterAnimation from "@/components/LetterAnimation/LetterAnimation";
 import PortalLink from "@/components/PortalLink";
+import { IPAToggle } from "@/components/IPAToggle";
+import { useShowIPA } from "@/hooks/useShowIPA";
 import { actionJa } from "@/data/phonemeJa";
 
 export default function PhonemePage() {
@@ -15,6 +17,7 @@ export default function PhonemePage() {
   const id = params.id as string;
   const phoneme = getPhonemeById(id);
   const { play, playPhoneme, speakWord } = useAudio();
+  const { showIPA, toggleIPA } = useShowIPA();
   const { completedPhonemes, phonemeActivity, recordPhonemeHeard, recordPhonemeWordHeard } = useProgressStore();
   const [showAnimation, setShowAnimation] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
@@ -131,7 +134,10 @@ export default function PhonemePage() {
           >
             {phoneme.letter}
           </motion.button>
-          <p className="text-2xl text-gray-500 font-semibold mt-2">{phoneme.sound} の おと</p>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            {showIPA && <p className="text-2xl text-gray-500 font-semibold">{phoneme.sound} の おと</p>}
+            <IPAToggle show={showIPA} onToggle={toggleIPA} />
+          </div>
         </motion.div>
 
         {/* Action Buttons */}

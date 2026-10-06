@@ -7,6 +7,8 @@ import { useAudio } from "@/hooks/useAudio";
 import { useProgressStore } from "@/store/progressStore";
 import { getSoundEffects } from "@/utils/soundEffects";
 import PortalLink from "@/components/PortalLink";
+import { IPAToggle } from "@/components/IPAToggle";
+import { useShowIPA } from "@/hooks/useShowIPA";
 
 declare global { interface Window { WiseXP?: any; } }
 
@@ -56,6 +58,7 @@ export default function BlendingGame() {
   const { play } = useAudio();
   const { updateGameScore, selectedPhonemes, addWrongAnswer } = useProgressStore();
   const soundEffects = getSoundEffects();
+  const { showIPA, toggleIPA } = useShowIPA();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
@@ -226,7 +229,10 @@ export default function BlendingGame() {
               >
                 {/* Sound cards */}
                 <div className="bg-white rounded-3xl shadow-xl p-6 mb-6">
-                  <p className="text-center text-gray-500 font-bold mb-4">Listen to the sounds:</p>
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <p className="text-gray-500 font-bold">Listen to the sounds:</p>
+                    <IPAToggle show={showIPA} onToggle={toggleIPA} />
+                  </div>
                   <div className="flex justify-center gap-3 mb-6 flex-wrap">
                     {question.sounds.map((sound, i) => (
                       <motion.button
@@ -239,7 +245,7 @@ export default function BlendingGame() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: i * 0.1 }}
                       >
-                        {sound}
+                        {showIPA ? sound : "🔊"}
                       </motion.button>
                     ))}
                   </div>

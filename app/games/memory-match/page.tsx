@@ -8,6 +8,8 @@ import { useProgressStore } from "@/store/progressStore";
 import { useAudio } from "@/hooks/useAudio";
 import { getSoundEffects } from "@/utils/soundEffects";
 import PortalLink from "@/components/PortalLink";
+import { IPAToggle } from "@/components/IPAToggle";
+import { useShowIPA } from "@/hooks/useShowIPA";
 
 declare global { interface Window { WiseXP?: any; } }
 
@@ -142,6 +144,7 @@ export default function MemoryMatchPage() {
   const { completedPhonemes, updateGameScore, selectedPhonemes } = useProgressStore();
   const { play } = useAudio();
   const soundEffects = getSoundEffects();
+  const { showIPA, toggleIPA } = useShowIPA();
 
   const [phase, setPhase] = useState<Phase>("menu");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
@@ -261,7 +264,7 @@ export default function MemoryMatchPage() {
           ← Back
         </Link>
         <h1 className="font-display text-2xl text-purple-800">🃏 Memory Match</h1>
-        <div className="w-16" />
+        <IPAToggle show={showIPA} onToggle={toggleIPA} />
       </header>
 
       {/* ── Menu ───────────────────────────────────────────────────── */}
@@ -387,12 +390,12 @@ export default function MemoryMatchPage() {
                         >
                           {card.display}
                         </span>
-                        <span
+                        {showIPA && <span
                           className="text-xs font-bold mt-1 opacity-60"
                           style={{ color: card.groupColor }}
                         >
                           {card.phoneme.sound}
-                        </span>
+                        </span>}
                       </>
                     ) : (
                       <span className="text-3xl sm:text-4xl">{card.display}</span>
