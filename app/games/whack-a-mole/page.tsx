@@ -118,10 +118,10 @@ export default function WhackAMolePage() {
         if (!currentTargetId) return prev;
 
         const slotIndex = pickRandom(emptySlots);
-        // 連続でターゲット以外が3回出たら強制的にターゲットを出す
-        const forceTarget = nonTargetCountRef.current >= 3;
-        // 正解モグラを 85% の確率で出す（ターゲットが出やすく）
-        const isTarget = forceTarget || Math.random() < 0.85;
+        // 連続でターゲット以外が4回出たら強制的にターゲットを出す
+        const forceTarget = nonTargetCountRef.current >= 4;
+        // 正解モグラを 40% の確率で出す（不正解もしっかり混ぜる）
+        const isTarget = forceTarget || Math.random() < 0.4;
         const phoneme = isTarget
           ? pool.find((p) => p.id === currentTargetId) ?? pickRandom(pool)
           : pickRandom(pool.filter((p) => p.id !== currentTargetId)) ?? pickRandom(pool);
@@ -353,11 +353,8 @@ export default function WhackAMolePage() {
                       }
                     }}
                   >
-                    <span className="text-2xl font-bold text-yellow-800">🎯 HIT:</span>
-                    <span className="font-display text-6xl text-yellow-900 drop-shadow-md">
-                      {target.letter}
-                    </span>
-                    <span className="text-3xl animate-pulse">🔊</span>
+                    <span className="text-4xl">🔊</span>
+                    <span className="text-base font-bold text-yellow-800">Tap to hear!</span>
                   </motion.button>
                   <motion.div
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm"
