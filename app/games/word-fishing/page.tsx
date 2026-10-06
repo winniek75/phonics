@@ -184,10 +184,9 @@ export default function WordFishingPage() {
       setCurrentPhoneme(ph);
       setTargetWord(word);
 
-      // 音声再生（音素 → 単語）
-      play(ph.audioFile);
-      const wordAudio = ph.wordAudioFiles?.[word];
-      if (wordAudio) setTimeout(() => play(wordAudio), 850);
+      // 音声再生（単語を読み上げ）
+      const wordAudio = ph.wordAudioFiles?.[word] || `/audio/words/${word}.mp3`;
+      play(wordAudio, { keyword: word });
 
       // デコイを作成（別音素の単語）
       const decoys: { word: string; phoneme: Phoneme }[] = [];
@@ -315,9 +314,8 @@ export default function WordFishingPage() {
                 <motion.button
                   key={round}
                   onClick={() => {
-                    play(currentPhoneme.audioFile);
-                    const wa = currentPhoneme.wordAudioFiles?.[targetWord];
-                    if (wa) setTimeout(() => play(wa), 700);
+                    const wa = currentPhoneme.wordAudioFiles?.[targetWord] || `/audio/words/${targetWord}.mp3`;
+                    play(wa, { keyword: targetWord });
                   }}
                   className="bg-white/85 backdrop-blur-sm rounded-2xl px-5 py-2 shadow flex items-center gap-3"
                   initial={{ y: -16, opacity: 0 }}

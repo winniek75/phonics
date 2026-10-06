@@ -72,15 +72,6 @@ const games = [
     color: "#0EA5E9",
     bg: "from-sky-400 to-blue-700",
   },
-  {
-    id: "memory-match",
-    title: "Memory Match",
-    emoji: "🃏",
-    description: "Flip cards to match letters with their sounds!",
-    descriptionJa: "カードを めくって、おなじ おとを そろえよう",
-    color: "#A855F7",
-    bg: "from-purple-400 to-violet-700",
-  },
 ];
 
 export default function GamesPage() {
